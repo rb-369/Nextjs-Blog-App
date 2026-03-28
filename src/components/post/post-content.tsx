@@ -1,9 +1,9 @@
 import { PostContentProps } from "@/lib/types"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card"
-import { formatDate, slugify } from "@/lib/utils"
+import { estimateReadTime, formatDate, slugify } from "@/lib/utils"
 import { Button } from "../ui/button"
 import Link from "next/link"
-import { Pencil } from "lucide-react"
+import { CalendarDays, Pencil, UserRound } from "lucide-react"
 import DeletePostButton from "./delete-post-button"
 
 
@@ -11,22 +11,41 @@ import DeletePostButton from "./delete-post-button"
 function PostContent({ post, isAuthor }: PostContentProps) {
 
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle className="text-3xl">
+        <Card className="overflow-hidden border-border/70 bg-card/80">
+            {post.coverImage ? (
+                <div className="h-56 w-full overflow-hidden md:h-80">
+                    <img src={post.coverImage} alt={post.title} className="h-full w-full object-cover" />
+                </div>
+            ) : null}
+            <CardHeader className="space-y-4">
+                <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-muted-foreground">
+                    <span className="rounded-full border px-2.5 py-1">{post.category}</span>
+                    <span className="rounded-full border px-2.5 py-1">{estimateReadTime(post.content)}</span>
+                    {!post.published ? <span className="rounded-full border px-2.5 py-1">Draft</span> : null}
+                </div>
+                <CardTitle className="text-3xl leading-tight md:text-4xl">
                     {post.title}
                 </CardTitle>
-                <CardDescription>
-                    By {post.author.name} - {formatDate(post.createdAt)}
+                <CardDescription className="flex flex-wrap items-center gap-3 text-sm">
+                    <span className="inline-flex items-center gap-1.5">
+                        <UserRound className="h-4 w-4" />
+                        {post.author.name}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5">
+                        <CalendarDays className="h-4 w-4" />
+                        {formatDate(post.createdAt)}
+                    </span>
                 </CardDescription>
             </CardHeader>
-            <CardContent>
-                <p className="text-muted-foreground text-lg mb-6">{post.description}</p>
-                <p className="font-bold text-4xl mb-6">{post.content}</p>
+            <CardContent className="space-y-6">
+                <p className="text-lg text-muted-foreground">{post.description}</p>
+                <article className="prose prose-zinc max-w-none whitespace-pre-wrap text-base leading-8 dark:prose-invert">
+                    {post.content}
+                </article>
             </CardContent>
             {
                 isAuthor && (
-                    <CardFooter >
+                    <CardFooter>
                         
                         <div className="flex gap-2 mr-3">
                             <Button asChild variant={"outline"} size={"sm"}>

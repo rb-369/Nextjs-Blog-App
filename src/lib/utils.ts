@@ -23,3 +23,9 @@ export function formatDate(date: Date): string {
     year: "numeric"
   }).format(date)
 }
+
+export function estimateReadTime(content: string): string {
+  const words = content.trim().split(/\s+/).filter(Boolean).length;
+  const minutes = Math.max(1, Math.ceil(words / 200));
+  return `${minutes} min read`;
+}

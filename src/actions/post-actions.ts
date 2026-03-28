@@ -8,6 +8,19 @@ import { and, eq, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 
+function isValidCoverImage(value: string): boolean {
+    if (/^data:image\/[a-zA-Z0-9.+-]+;base64,/i.test(value)) {
+        return true;
+    }
+
+    try {
+        const parsed = new URL(value);
+        return parsed.protocol === "http:" || parsed.protocol === "https:";
+    } catch {
+        return false;
+    }
+}
+
 export async function createPost(formData: FormData) {
 
     try {
@@ -28,7 +41,10 @@ export async function createPost(formData: FormData) {
         //get the form data
         const title = String(formData.get("title") ?? "").trim();
         const description = String(formData.get("description") ?? "").trim();
+        const category = String(formData.get("category") ?? "General").trim() || "General";
+        const coverImageRaw = String(formData.get("coverImage") ?? "").trim();
         const content = String(formData.get("content") ?? "").trim();
+        const coverImage = coverImageRaw ? coverImageRaw : null;
 
         //implement extra validation
         if (!title) {
@@ -45,6 +61,13 @@ export async function createPost(formData: FormData) {
             return {
                 success: false,
                 message: "You must give some content"
+            }
+        } else if (coverImageRaw) {
+            if (!isValidCoverImage(coverImageRaw)) {
+                return {
+                    success: false,
+                    message: "Cover image must be a valid URL or uploaded image"
+                }
             }
         }
 
@@ -66,7 +89,9 @@ export async function createPost(formData: FormData) {
         await db.insert(posts).values({
             title,
             description,
+            category,
             content,
+            coverImage,
             slug,
             authorId: session.user.id,
         });
@@ -110,7 +135,10 @@ export async function updatePost(postId: number, formData: FormData) {
         //get the form data
         const title = String(formData.get("title") ?? "").trim();
         const description = String(formData.get("description") ?? "").trim();
+        const category = String(formData.get("category") ?? "General").trim() || "General";
+        const coverImageRaw = String(formData.get("coverImage") ?? "").trim();
         const content = String(formData.get("content") ?? "").trim();
+        const coverImage = coverImageRaw ? coverImageRaw : null;
 
         //implement extra validation
         if (!title) {
@@ -127,6 +155,13 @@ export async function updatePost(postId: number, formData: FormData) {
             return {
                 success: false,
                 message: "You must give some content"
+            }
+        } else if (coverImageRaw) {
+            if (!isValidCoverImage(coverImageRaw)) {
+                return {
+                    success: false,
+                    message: "Cover image must be a valid URL or uploaded image"
+                }
             }
         }
 
@@ -158,7 +193,9 @@ export async function updatePost(postId: number, formData: FormData) {
         await db.update(posts).set({
             title,
             description,
+            category,
             content,
+            coverImage,
             slug,
             updatedAt: new Date()
         }).where(eq(posts.id, postId))

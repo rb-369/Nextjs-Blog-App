@@ -36,6 +36,8 @@ async function EditPostPage({ params }: { params: Promise<{ slug: string }> }) {
         id: post.id,
         title: post.title,
         description: post.description,
+        category: post.category,
+        coverImage: post.coverImage,
         content: post.content,
         slug: post.slug
       }} />

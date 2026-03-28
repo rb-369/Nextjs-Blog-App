@@ -5,7 +5,10 @@ export interface PostListProps {
         id: number,
         title: string,
         description: string,
+        category: string,
         content: string,
+        coverImage: string | null,
+        published: boolean,
         slug: string,
         author: {
             name: string;
@@ -20,7 +23,10 @@ export interface PostCardProps {
         id: number,
         title: string,
         description: string,
+        category: string,
         content: string,
+        coverImage: string | null,
+        published: boolean,
         slug: string,
         author: {
             name: string;
@@ -36,7 +42,10 @@ export interface PostContentProps{
         id: number,
         title: string,
         description: string,
+    category: string,
         content: string,
+    coverImage: string | null,
+    published: boolean,
         slug: string,
         author: {
             name: string;
