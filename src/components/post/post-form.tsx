@@ -35,6 +35,7 @@ const postSchema = z.object({
     category: z.string()
         .min(2, "Category should be at least 2 characters")
         .max(80, "Category should be less than 81 characters"),
+    tags: z.string().max(300, "Tags input is too long"),
     customCategory: z.string().trim().optional(),
     coverImage: z.string()
         .trim()
@@ -66,6 +67,7 @@ interface PostFormProps {
         title: string,
         description: string,
         category: string,
+        tags?: string,
         coverImage: string | null,
         content: string,
         slug: string
@@ -89,6 +91,7 @@ function PostForm({ isEditing, post }: PostFormProps) {
             title: post?.title,
             description: post?.description,
             category: hasCustomCategory ? "other" : post?.category,
+            tags: post?.tags ?? "",
             customCategory: hasCustomCategory ? post?.category : "",
             coverImage: post?.coverImage ?? "",
             content: post?.content
@@ -96,6 +99,7 @@ function PostForm({ isEditing, post }: PostFormProps) {
             title: "",
             description: "",
             category: "General",
+            tags: "",
             customCategory: "",
             coverImage: "",
             content: ""
@@ -180,6 +184,7 @@ function PostForm({ isEditing, post }: PostFormProps) {
                 formData.append("title", data.title)
                 formData.append("description", data.description)
                 formData.append("category", finalCategory)
+                formData.append("tags", data.tags)
                 formData.append("coverImage", uploadedCoverImage)
                 formData.append("content", data.content)
 
@@ -269,6 +274,21 @@ function PostForm({ isEditing, post }: PostFormProps) {
                             ) : null}
                         </div>
                     ) : null}
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="tags">Tags</Label>
+                    <Input
+                        id="tags"
+                        placeholder="nextjs, auth, db"
+                        {...register("tags")}
+                        disabled={isPending || isUploadingImage}
+                    />
+                    <p className="text-xs text-muted-foreground">Use commas to separate tags.</p>
+                    {
+                        errors?.tags &&
+                        <p className="text-sm text-red-700">{errors.tags.message}</p>
+                    }
                 </div>
 
                 <div className="space-y-2">

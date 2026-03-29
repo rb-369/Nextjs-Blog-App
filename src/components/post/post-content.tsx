@@ -5,10 +5,12 @@ import { Button } from "../ui/button"
 import Link from "next/link"
 import { CalendarDays, Pencil, UserRound } from "lucide-react"
 import DeletePostButton from "./delete-post-button"
+import PostInteractions from "./post-interactions"
+import PostComments from "./post-comments"
 
 
 
-function PostContent({ post, isAuthor }: PostContentProps) {
+function PostContent({ post, isAuthor, engagement, userState, comments }: PostContentProps) {
 
     return (
         <Card className="overflow-hidden border-border/70 bg-card/80">
@@ -22,6 +24,11 @@ function PostContent({ post, isAuthor }: PostContentProps) {
                     <span className="rounded-full border px-2.5 py-1">{post.category}</span>
                     <span className="rounded-full border px-2.5 py-1">{estimateReadTime(post.content)}</span>
                     {!post.published ? <span className="rounded-full border px-2.5 py-1">Draft</span> : null}
+                    {(post.postTags ?? []).map((item) => (
+                        <Link key={item.tag.id} href={`/tag/${item.tag.slug}`} className="rounded-full border px-2.5 py-1 hover:bg-muted">
+                            #{item.tag.name}
+                        </Link>
+                    ))}
                 </div>
                 <CardTitle className="text-3xl leading-tight md:text-4xl">
                     {post.title}
@@ -42,6 +49,21 @@ function PostContent({ post, isAuthor }: PostContentProps) {
                 <article className="prose prose-zinc max-w-none whitespace-pre-wrap text-base leading-8 dark:prose-invert">
                     {post.content}
                 </article>
+
+                <PostInteractions
+                    postId={post.id}
+                    authorId={post.authorId}
+                    authorName={post.author.name}
+                    slug={post.slug}
+                    engagement={engagement}
+                    userState={userState}
+                />
+
+                <PostComments
+                    postId={post.id}
+                    comments={comments}
+                    isAuthor={isAuthor}
+                />
             </CardContent>
             {
                 isAuthor && (

@@ -10,7 +10,7 @@ function NotFoundPage() {
         <h1 className="text-6xl font-extrabold mb-4">404</h1>
         <h2 className="text-2xl font-semibold mb-6">Page Not Found!! :( </h2>
         <p className="text-muted-foreground mb-8 max-w-md">
-            The page you are looking doesn't exists or has been moved
+          The page you are looking doesn&apos;t exist or has been moved
         </p>
         <Button asChild>
             <Link href={"/"}>Return to Home Page</Link>

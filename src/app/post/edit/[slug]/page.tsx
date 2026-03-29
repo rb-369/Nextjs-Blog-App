@@ -37,6 +37,7 @@ async function EditPostPage({ params }: { params: Promise<{ slug: string }> }) {
         title: post.title,
         description: post.description,
         category: post.category,
+        tags: (post.postTags ?? []).map((item) => item.tag.name).join(", "),
         coverImage: post.coverImage,
         content: post.content,
         slug: post.slug

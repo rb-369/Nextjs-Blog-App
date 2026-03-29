@@ -28,7 +28,6 @@ interface RegisterFormProps{
 
 function RegisterForm({onSuccess}: RegisterFormProps) {
     const [isLoading, setIsLoading] = useState(false);
-    const [v, sv] = useState<any>();
 
     const form = useForm<RegisterFormValues>({
         resolver: zodResolver(registerSchema),
@@ -60,8 +59,6 @@ function RegisterForm({onSuccess}: RegisterFormProps) {
             if(onSuccess){
                 onSuccess();
             }
-
-            console.log(values);
 
         }catch(e){
             console.log(e);

@@ -1,6 +1,8 @@
 import PostList from "@/components/post/post-list";
-import { getAllPosts} from "@/lib/db/queries";
+import { auth } from "@/lib/auth";
+import { getAllPosts, getSubscribedAuthorNotifications, getSuggestedPostsFromSubscribedAuthors } from "@/lib/db/queries";
 import { Metadata } from "next";
+import { headers } from "next/headers";
 import Link from "next/link";
 import { ArrowUpRight, Sparkles } from "lucide-react";
 
@@ -11,7 +13,14 @@ export const metadata: Metadata = {
 
 export default async function Home() {
 
-  const posts = await getAllPosts();
+  const session = await auth.api.getSession({ headers: await headers() });
+  const posts = await getAllPosts(session?.user?.id);
+  const [suggestedPosts, notificationPosts] = session?.user?.id
+    ? await Promise.all([
+        getSuggestedPostsFromSubscribedAuthors(session.user.id),
+        getSubscribedAuthorNotifications(session.user.id),
+      ])
+    : [[], []];
   
   return (
     <main className="relative py-10 md:py-14">
@@ -46,6 +55,39 @@ export default async function Home() {
             <p className="mt-2 text-sm text-muted-foreground">Create your first post to get started.</p>
           </div> : <PostList posts={posts}/>
         }
+
+        {notificationPosts.length ? (
+          <section className="mt-10 rounded-2xl border bg-card/70 p-6">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <h2 className="text-xl font-bold">New From Authors You Follow</h2>
+              <Link href="/notifications" className="text-sm font-semibold text-primary">View all</Link>
+            </div>
+            <ul className="space-y-2 text-sm">
+              {notificationPosts.slice(0, 5).map((post) => (
+                <li key={post.id} className="rounded-md border p-3">
+                  <Link href={`/post/${post.slug}`} className="font-semibold hover:underline">{post.title}</Link>
+                  <p className="text-xs text-muted-foreground">by {post.author.name}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
+        {suggestedPosts.length ? (
+          <section className="mt-10 rounded-2xl border bg-card/70 p-6">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <h2 className="text-xl font-bold">Suggested From Subscribed Authors</h2>
+            </div>
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              {suggestedPosts.map((post) => (
+                <Link key={post.id} href={`/post/${post.slug}`} className="rounded-md border p-3 transition hover:bg-muted/30">
+                  <p className="font-semibold">{post.title}</p>
+                  <p className="text-xs text-muted-foreground">{post.author.name}</p>
+                </Link>
+              ))}
+            </div>
+          </section>
+        ) : null}
       </div>
     </main>
   )

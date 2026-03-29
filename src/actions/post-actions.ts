@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { posts } from "@/lib/db/schema";
 import { slugify } from "@/lib/utils";
+import { syncPostTags } from "./social-actions";
 import { and, eq, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
@@ -42,6 +43,7 @@ export async function createPost(formData: FormData) {
         const title = String(formData.get("title") ?? "").trim();
         const description = String(formData.get("description") ?? "").trim();
         const category = String(formData.get("category") ?? "General").trim() || "General";
+        const tagInput = String(formData.get("tags") ?? "").trim();
         const coverImageRaw = String(formData.get("coverImage") ?? "").trim();
         const content = String(formData.get("content") ?? "").trim();
         const coverImage = coverImageRaw ? coverImageRaw : null;
@@ -86,7 +88,7 @@ export async function createPost(formData: FormData) {
             }
         }
 
-        await db.insert(posts).values({
+        const [insertedPost] = await db.insert(posts).values({
             title,
             description,
             category,
@@ -94,7 +96,11 @@ export async function createPost(formData: FormData) {
             coverImage,
             slug,
             authorId: session.user.id,
-        });
+        }).returning();
+
+        if (insertedPost) {
+            await syncPostTags(insertedPost.id, tagInput);
+        }
 
         //revalidating the home page to get the latest posts
         revalidatePath("/")
@@ -136,6 +142,7 @@ export async function updatePost(postId: number, formData: FormData) {
         const title = String(formData.get("title") ?? "").trim();
         const description = String(formData.get("description") ?? "").trim();
         const category = String(formData.get("category") ?? "General").trim() || "General";
+        const tagInput = String(formData.get("tags") ?? "").trim();
         const coverImageRaw = String(formData.get("coverImage") ?? "").trim();
         const content = String(formData.get("content") ?? "").trim();
         const coverImage = coverImageRaw ? coverImageRaw : null;
@@ -199,6 +206,8 @@ export async function updatePost(postId: number, formData: FormData) {
             slug,
             updatedAt: new Date()
         }).where(eq(posts.id, postId))
+
+        await syncPostTags(postId, tagInput);
 
         revalidatePath("/");
         revalidatePath(`/post/${slug}`);

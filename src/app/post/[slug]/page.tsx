@@ -1,6 +1,6 @@
 import PostContent from "@/components/post/post-content";
 import { auth } from "@/lib/auth";
-import { getPostById, getPostBySlug } from "@/lib/db/queries";
+import { getPostBySlug, getPostCommentsWithReplies, getPostEngagementCounts, getUserPostEngagementState } from "@/lib/db/queries";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
@@ -25,10 +25,16 @@ async function PostDetailsPage({ params }: { params: Promise<{ slug: string }> }
 
     const isAuthor = session?.user?.id === post.authorId
 
+    const [engagement, userState, comments] = await Promise.all([
+      getPostEngagementCounts(post.id),
+      getUserPostEngagementState(post.id, session?.user?.id),
+      getPostCommentsWithReplies(post.id),
+    ]);
+
   return (
     <main className="py-10">
       <div className="max-w-4xl mx-auto ">
-          <PostContent post={post} isAuthor={isAuthor}/>
+          <PostContent post={post} isAuthor={isAuthor} engagement={engagement} userState={userState} comments={comments}/>
       </div>
     </main>
   )

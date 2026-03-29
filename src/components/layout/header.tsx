@@ -23,7 +23,16 @@ function Header() {
       label: "See Your Posts", href: "/yourPosts"
     },
     {
+      label: "Saved Posts", href: "/saved"
+    },
+    {
+      label: "Notifications", href: "/notifications"
+    },
+    {
       label: "Search Posts", href: "/search"
+    },
+    {
+      label: "Analytics", href: "/analytics"
     }
   ]
 
@@ -33,7 +42,7 @@ function Header() {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-6">
           <Link href={"/"} className="font-bold text-xl">
-            RB's Next.js Blog App
+            RB&apos;s Next.js Blog App
           </Link>
           <nav className=" md:flex items-center gap-6">
             {

@@ -22,6 +22,27 @@
       "when": 1774618867238,
       "tag": "0002_burly_johnny_blaze",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1774722264639,
+      "tag": "0003_overrated_smasher",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1774769594443,
+      "tag": "0004_chubby_morlun",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1774771102282,
+      "tag": "0005_high_apocalypse",
+      "breakpoints": true
     }
   ]
 }

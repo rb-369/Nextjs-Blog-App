@@ -1,8 +1,11 @@
 import Link from "next/link";
+import { auth } from "@/lib/auth";
+import ViewTrackedLink from "@/components/post/view-tracked-link";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ArrowUpRight, SearchIcon, Sparkles } from "lucide-react";
 import { getAllPosts } from "@/lib/db/queries";
+import { headers } from "next/headers";
 
 const quickTags = [
   "nextjs",
@@ -27,7 +30,8 @@ async function SearchPage({
   const params = await searchParams;
   const query = (params.q ?? "").trim();
   const normalizedQuery = query.toLowerCase();
-  const allPosts = await getAllPosts();
+  const session = await auth.api.getSession({ headers: await headers() });
+  const allPosts = await getAllPosts(session?.user?.id);
 
   const filteredPosts = normalizedQuery
     ? allPosts.filter((post) => {
@@ -101,8 +105,9 @@ async function SearchPage({
             </div>
           ) : (
             filteredPosts.map((post) => (
-              <Link
+              <ViewTrackedLink
                 key={post.id}
+                postId={post.id}
                 href={`/post/${post.slug}`}
                 className="group block rounded-2xl border bg-card p-5 transition hover:border-foreground/20 hover:shadow-sm"
               >
@@ -118,7 +123,7 @@ async function SearchPage({
                   See Post
                   <ArrowUpRight className="size-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </span>
-              </Link>
+              </ViewTrackedLink>
             ))
           )}
         </div>

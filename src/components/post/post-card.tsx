@@ -1,6 +1,7 @@
 import { PostCardProps } from "@/lib/types"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
 import Link from "next/link"
+import ViewTrackedLink from "./view-tracked-link"
 import { estimateReadTime, formatDate } from "@/lib/utils"
 import { ArrowUpRight, CalendarDays } from "lucide-react"
 
@@ -27,20 +28,30 @@ function PostCard({post}: PostCardProps) {
         </span>
         <span className="text-muted-foreground">{estimateReadTime(post.content)}</span>
       </div>
-      <Link className="inline-block" href={`/post/${post.slug}`}>
+      <ViewTrackedLink postId={post.id} className="inline-block" href={`/post/${post.slug}`}>
       <CardTitle className="text-2xl leading-tight transition group-hover:text-primary">{post.title}</CardTitle>
-      </Link>
+      </ViewTrackedLink>
       <CardDescription className="flex items-center gap-1.5 text-xs md:text-sm">
         <CalendarDays className="h-3.5 w-3.5" />
         By {post.author.name} · {formatDate(post.createdAt)}
       </CardDescription>
+
+      {(post.postTags ?? []).length ? (
+        <div className="flex flex-wrap gap-1.5 text-xs">
+          {post.postTags?.slice(0, 3).map((item) => (
+            <Link key={item.tag.id} href={`/tag/${item.tag.slug}`} className="rounded-full border px-2 py-0.5 text-muted-foreground hover:bg-muted">
+              #{item.tag.name}
+            </Link>
+          ))}
+        </div>
+      ) : null}
         </CardHeader>
     <CardContent className="mt-auto">
       <p className="mb-4 text-muted-foreground">{post.description}</p>
-      <Link href={`/post/${post.slug}`} className="inline-flex items-center gap-1 text-sm font-semibold text-primary">
+      <ViewTrackedLink postId={post.id} href={`/post/${post.slug}`} className="inline-flex items-center gap-1 text-sm font-semibold text-primary">
         Read post
         <ArrowUpRight className="h-4 w-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-      </Link>
+      </ViewTrackedLink>
         </CardContent>
             
     </Card>
