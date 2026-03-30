@@ -5,7 +5,7 @@ export default {
     out: "./drizzle",
     dialect: "postgresql",
     dbCredentials: {
-        url: process.env.DB_URL || ""
+        url: process.env.DB_URL || process.env.DATABASE_URL || process.env.POSTGRES_URL || ""
     },
     verbose: true,
     strict: true

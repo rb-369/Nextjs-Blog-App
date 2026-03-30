@@ -54,6 +54,7 @@ Notes:
 
 - Use a strong `BETTER_AUTH_SECRET` (at least 32 chars).
 - In production (Vercel), set `BASE_URL` and `NEXT_PUBLIC_BASE_URL` to your deployed domain, e.g. `https://nextjs-blog-app-eight-blush.vercel.app`.
+- In production, set one DB connection variable: `DB_URL` (preferred), or `DATABASE_URL`, or `POSTGRES_URL`. If none is set, the app now throws a clear startup error.
 - Cloudinary is configured for remote image rendering in `next.config.ts`.
 
 ## Setup
