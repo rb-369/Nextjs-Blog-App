@@ -31,6 +31,9 @@ export interface PostBase {
     content: string;
     coverImage: string | null;
     published: boolean;
+    status?: string;
+    scheduledAt?: Date | null;
+    publishedAt?: Date | null;
     slug: string;
     authorId: string;
     author: {

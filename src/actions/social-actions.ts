@@ -3,10 +3,13 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import {
+    authorBlockWords,
     authorSubscriptions,
     bookmarks,
     comments,
     notInterestedPosts,
+    notificationPreferences,
+    posts,
     postReactions,
     postReports,
     postShares,
@@ -111,6 +114,7 @@ export async function togglePostReaction(postId: number, reactionType: "like" | 
         }
 
         revalidatePath("/");
+        revalidatePath("/analytics");
         return { success: true };
     } catch (error) {
         return { success: false, message: error instanceof Error ? error.message : "Failed to update reaction" };
@@ -136,6 +140,7 @@ export async function toggleBookmark(postId: number) {
             });
         }
 
+        revalidatePath("/analytics");
         return { success: true };
     } catch (error) {
         return { success: false, message: error instanceof Error ? error.message : "Failed to update bookmark" };
@@ -166,6 +171,7 @@ export async function toggleAuthorSubscription(authorId: string) {
             });
         }
 
+        revalidatePath("/analytics");
         return { success: true };
     } catch (error) {
         return { success: false, message: error instanceof Error ? error.message : "Failed to update subscription" };
@@ -191,6 +197,7 @@ export async function toggleAuthorNotify(authorId: string) {
             .set({ notifyOnPost: !existing.notifyOnPost })
             .where(eq(authorSubscriptions.id, existing.id));
 
+        revalidatePath("/analytics");
         return { success: true, notifyOnPost: !existing.notifyOnPost };
     } catch (error) {
         return { success: false, message: error instanceof Error ? error.message : "Failed to update notification setting" };
@@ -267,6 +274,7 @@ export async function recordPostShare(postId: number, channel = "copy_link") {
             channel,
         });
 
+        revalidatePath("/analytics");
         return { success: true };
     } catch (error) {
         return { success: false, message: error instanceof Error ? error.message : "Failed to track share" };
@@ -284,6 +292,7 @@ export async function recordPostView(postId: number, sessionId?: string, ipAddre
             ipAddress,
         });
 
+        revalidatePath("/analytics");
         return { success: true };
     } catch (error) {
         return { success: false, message: error instanceof Error ? error.message : "Failed to track view" };
@@ -299,16 +308,38 @@ export async function addComment(postId: number, content: string, parentId?: num
             return { success: false, message: "Comment cannot be empty" };
         }
 
+        const post = await db.query.posts.findFirst({
+            where: eq(posts.id, postId),
+        });
+
+        if (!post) {
+            return { success: false, message: "Post not found" };
+        }
+
+        const blockedWords = await db.query.authorBlockWords.findMany({
+            where: eq(authorBlockWords.authorId, post.authorId),
+        });
+
+        const lowered = trimmed.toLowerCase();
+        const matchedBlockedWord = blockedWords.find((item) => lowered.includes(item.word.toLowerCase()));
+        const commentStatus = matchedBlockedWord ? "rejected" : "approved";
+
         await db.insert(comments).values({
             postId,
             userId: session.user.id,
             parentId: parentId ?? null,
             content: trimmed,
-            status: "approved",
+            status: commentStatus,
         });
 
         revalidatePath(`/post`);
-        return { success: true, message: "Comment added" };
+        revalidatePath("/analytics");
+        return {
+            success: true,
+            message: matchedBlockedWord
+                ? "Comment submitted but held by moderation filter"
+                : "Comment added",
+        };
     } catch (error) {
         return { success: false, message: error instanceof Error ? error.message : "Failed to add comment" };
     }
@@ -335,6 +366,7 @@ export async function deleteComment(commentId: number) {
         await db.delete(comments).where(eq(comments.parentId, commentId));
 
         revalidatePath(`/post/${comment.post.slug}`);
+        revalidatePath("/analytics");
         return { success: true, message: "Comment removed" };
     } catch (error) {
         return { success: false, message: error instanceof Error ? error.message : "Failed to delete comment" };
@@ -366,8 +398,113 @@ export async function moderateComment(commentId: number, status: "approved" | "r
             })
             .where(eq(comments.id, commentId));
 
+        revalidatePath("/analytics");
         return { success: true };
     } catch (error) {
         return { success: false, message: error instanceof Error ? error.message : "Failed to moderate comment" };
+    }
+}
+
+export async function addAuthorBlockedWord(word: string) {
+    try {
+        const session = await requireSession();
+        const cleaned = word.trim().toLowerCase();
+
+        if (!cleaned || cleaned.length < 2) {
+            return { success: false, message: "Blocked word must be at least 2 characters" };
+        }
+
+        const [existing] = await db
+            .select()
+            .from(authorBlockWords)
+            .where(and(eq(authorBlockWords.authorId, session.user.id), eq(authorBlockWords.word, cleaned)))
+            .limit(1);
+
+        if (!existing) {
+            await db.insert(authorBlockWords).values({
+                authorId: session.user.id,
+                word: cleaned,
+            });
+        }
+
+        revalidatePath("/moderation");
+        return { success: true };
+    } catch (error) {
+        return { success: false, message: error instanceof Error ? error.message : "Failed to add blocked word" };
+    }
+}
+
+export async function removeAuthorBlockedWord(blockWordId: number) {
+    try {
+        const session = await requireSession();
+
+        await db
+            .delete(authorBlockWords)
+            .where(and(eq(authorBlockWords.id, blockWordId), eq(authorBlockWords.authorId, session.user.id)));
+
+        revalidatePath("/moderation");
+        return { success: true };
+    } catch (error) {
+        return { success: false, message: error instanceof Error ? error.message : "Failed to remove blocked word" };
+    }
+}
+
+export async function reviewPostReport(reportId: number, status: "open" | "reviewed") {
+    try {
+        const session = await requireSession();
+        const report = await db.query.postReports.findFirst({
+            where: eq(postReports.id, reportId),
+            with: { post: true },
+        });
+
+        if (!report || report.post.authorId !== session.user.id) {
+            return { success: false, message: "Report not found" };
+        }
+
+        await db
+            .update(postReports)
+            .set({ status })
+            .where(eq(postReports.id, reportId));
+
+        revalidatePath("/moderation");
+        return { success: true };
+    } catch (error) {
+        return { success: false, message: error instanceof Error ? error.message : "Failed to review report" };
+    }
+}
+
+export async function updateNotificationPreferences(values: {
+    notifyCommentsOnMyPosts: boolean;
+    notifyNewPostsFromFollowedAuthors: boolean;
+    notifyRepliesToMyComments: boolean;
+}) {
+    try {
+        const session = await requireSession();
+
+        const [existing] = await db
+            .select()
+            .from(notificationPreferences)
+            .where(eq(notificationPreferences.userId, session.user.id))
+            .limit(1);
+
+        if (existing) {
+            await db
+                .update(notificationPreferences)
+                .set({
+                    ...values,
+                    updatedAt: new Date(),
+                })
+                .where(eq(notificationPreferences.id, existing.id));
+        } else {
+            await db.insert(notificationPreferences).values({
+                userId: session.user.id,
+                ...values,
+            });
+        }
+
+        revalidatePath("/notifications");
+        return { success: true };
+    } catch (error) {
+        return { success: false, message: error instanceof Error ? error.message : "Failed to update notification preferences" };
     }
 }

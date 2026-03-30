@@ -11,6 +11,7 @@ import { useState, useTransition } from "react";
 import { createPost, updatePost } from "@/actions/post-actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 const PRESET_CATEGORIES = [
     "General",
@@ -43,6 +44,8 @@ const postSchema = z.object({
         .refine((value) => !value || /^https?:\/\/.+/i.test(value), {
             message: "Cover image must be a valid URL"
         }),
+    publishMode: z.enum(["publish", "draft", "schedule"]),
+    scheduledAt: z.string().optional(),
     content: z.string()
         .min(1, "Content must be atleast one character")
         .max(10000, "Content must be less than 10000 characters"),
@@ -69,6 +72,8 @@ interface PostFormProps {
         category: string,
         tags?: string,
         coverImage: string | null,
+        status?: string,
+        scheduledAt?: string | null,
         content: string,
         slug: string
     }
@@ -94,6 +99,8 @@ function PostForm({ isEditing, post }: PostFormProps) {
             tags: post?.tags ?? "",
             customCategory: hasCustomCategory ? post?.category : "",
             coverImage: post?.coverImage ?? "",
+            publishMode: post?.status === "draft" ? "draft" : post?.status === "scheduled" ? "schedule" : "publish",
+            scheduledAt: post?.scheduledAt ?? "",
             content: post?.content
         } : {
             title: "",
@@ -102,6 +109,8 @@ function PostForm({ isEditing, post }: PostFormProps) {
             tags: "",
             customCategory: "",
             coverImage: "",
+            publishMode: "publish",
+            scheduledAt: "",
             content: ""
         }
     })
@@ -186,6 +195,8 @@ function PostForm({ isEditing, post }: PostFormProps) {
                 formData.append("category", finalCategory)
                 formData.append("tags", data.tags)
                 formData.append("coverImage", uploadedCoverImage)
+                formData.append("publishMode", data.publishMode)
+                formData.append("scheduledAt", data.scheduledAt ?? "")
                 formData.append("content", data.content)
 
                 let res; 
@@ -305,7 +316,9 @@ function PostForm({ isEditing, post }: PostFormProps) {
 
                     {imagePreview ? (
                         <div className="overflow-hidden rounded-md border">
-                            <img src={imagePreview} alt="Cover preview" className="h-36 w-full object-cover" />
+                            <div className="relative h-36 w-full">
+                                <Image src={imagePreview} alt="Cover preview" fill sizes="100vw" className="object-cover" />
+                            </div>
                             <div className="p-2">
                                 <Button type="button" variant="outline" size="sm" onClick={clearCoverImage} disabled={isPending || isUploadingImage}>
                                     Remove Image
@@ -318,6 +331,32 @@ function PostForm({ isEditing, post }: PostFormProps) {
                         errors?.coverImage &&
                         <p className="text-sm text-red-700">{errors.coverImage.message}</p>
                     }
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="publishMode">Publish Mode</Label>
+                    <select
+                        id="publishMode"
+                        defaultValue={isEditing && post?.status === "draft" ? "draft" : isEditing && post?.status === "scheduled" ? "schedule" : "publish"}
+                        {...register("publishMode")}
+                        disabled={isPending || isUploadingImage}
+                        className="h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                    >
+                        <option value="publish">Publish now</option>
+                        <option value="draft">Save as draft</option>
+                        <option value="schedule">Schedule</option>
+                    </select>
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="scheduledAt">Scheduled Date</Label>
+                    <Input
+                        id="scheduledAt"
+                        type="datetime-local"
+                        {...register("scheduledAt")}
+                        disabled={isPending || isUploadingImage}
+                    />
+                    <p className="text-xs text-muted-foreground">Used only when publish mode is set to Schedule.</p>
                 </div>
             </div>
 

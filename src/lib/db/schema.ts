@@ -43,10 +43,13 @@ export const posts = pgTable("posts", {
     title: varchar("title", { length: 255 }).notNull(),
     description: varchar("description", { length: 255 }).notNull(),
     category: varchar("category", { length: 80 }).default("General").notNull(),
+    status: varchar("status", { length: 20 }).default("published").notNull(), // draft | published | scheduled
     slug: varchar("slug", { length: 255 }).notNull().unique(),
     coverImage: text("cover_image"),
     content: text("content").notNull(),
     published: boolean("published").default(true).notNull(),
+    scheduledAt: timestamp("scheduled_at"),
+    publishedAt: timestamp("published_at"),
     authorId: varchar("author_id", { length: 255 }).references(() => users.id).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -83,6 +86,21 @@ export const postViews = pgTable("post_views", {
     userId: varchar("user_id", { length: 255 }).references(() => users.id),
     sessionId: varchar("session_id", { length: 255 }),
     ipAddress: varchar("ip_address", { length: 255 }),
+    durationSeconds: integer("duration_seconds").default(0).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+})
+
+export const postRevisions = pgTable("post_revisions", {
+    id: serial("id").primaryKey(),
+    postId: integer("post_id").references(() => posts.id).notNull(),
+    editorId: varchar("editor_id", { length: 255 }).references(() => users.id).notNull(),
+    title: varchar("title", { length: 255 }).notNull(),
+    description: varchar("description", { length: 255 }).notNull(),
+    category: varchar("category", { length: 80 }).notNull(),
+    coverImage: text("cover_image"),
+    content: text("content").notNull(),
+    slug: varchar("slug", { length: 255 }).notNull(),
+    tagsSnapshot: text("tags_snapshot").default("").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
 })
 
@@ -146,6 +164,27 @@ export const comments = pgTable("comments", {
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
 })
+
+export const authorBlockWords = pgTable("author_block_words", {
+    id: serial("id").primaryKey(),
+    authorId: varchar("author_id", { length: 255 }).references(() => users.id).notNull(),
+    word: varchar("word", { length: 80 }).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+    authorWordUnique: uniqueIndex("author_block_words_author_word_unique").on(table.authorId, table.word),
+}))
+
+export const notificationPreferences = pgTable("notification_preferences", {
+    id: serial("id").primaryKey(),
+    userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
+    notifyCommentsOnMyPosts: boolean("notify_comments_on_my_posts").default(true).notNull(),
+    notifyNewPostsFromFollowedAuthors: boolean("notify_new_posts_from_followed_authors").default(true).notNull(),
+    notifyRepliesToMyComments: boolean("notify_replies_to_my_comments").default(true).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+    userNotificationPreferenceUnique: uniqueIndex("notification_preferences_user_unique").on(table.userId),
+}))
 
 //one to many relation here => it means one user(author) can post multiple blogs
 
@@ -321,6 +360,7 @@ export const schema = {
     postTags,
     postReactions,
     postViews,
+    postRevisions,
     bookmarks,
     postSubscriptions,
     authorSubscriptions,
@@ -328,5 +368,7 @@ export const schema = {
     notInterestedPosts,
     postShares,
     comments,
+    authorBlockWords,
+    notificationPreferences,
 
 }

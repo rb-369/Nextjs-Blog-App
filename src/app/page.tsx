@@ -1,13 +1,13 @@
 import PostList from "@/components/post/post-list";
 import { auth } from "@/lib/auth";
-import { getAllPosts, getSubscribedAuthorNotifications, getSuggestedPostsFromSubscribedAuthors } from "@/lib/db/queries";
+import { getAllPosts, getSmartRecommendations, getSubscribedAuthorNotifications, getSuggestedPostsFromSubscribedAuthors } from "@/lib/db/queries";
 import { Metadata } from "next";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { ArrowUpRight, Sparkles } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "RB's Blog App",
+  title: "VELO: A Blog App",
   description: "This a web app created with Next.js"
 }
 
@@ -15,12 +15,13 @@ export default async function Home() {
 
   const session = await auth.api.getSession({ headers: await headers() });
   const posts = await getAllPosts(session?.user?.id);
-  const [suggestedPosts, notificationPosts] = session?.user?.id
+  const [suggestedPosts, notificationPosts, smartRecommendations] = session?.user?.id
     ? await Promise.all([
         getSuggestedPostsFromSubscribedAuthors(session.user.id),
         getSubscribedAuthorNotifications(session.user.id),
+        getSmartRecommendations(session.user.id),
       ])
-    : [[], []];
+    : [[], [], await getSmartRecommendations(undefined)];
   
   return (
     <main className="relative py-10 md:py-14">
@@ -44,6 +45,9 @@ export default async function Home() {
             </Link>
             <Link href="/search" className="inline-flex items-center gap-1 rounded-md border px-4 py-2 text-sm font-semibold transition hover:border-foreground/20">
               Search posts
+            </Link>
+            <Link href="/following" className="inline-flex items-center gap-1 rounded-md border px-4 py-2 text-sm font-semibold transition hover:border-foreground/20">
+              Followed feed
             </Link>
           </div>
         </section>
@@ -80,6 +84,22 @@ export default async function Home() {
             </div>
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               {suggestedPosts.map((post) => (
+                <Link key={post.id} href={`/post/${post.slug}`} className="rounded-md border p-3 transition hover:bg-muted/30">
+                  <p className="font-semibold">{post.title}</p>
+                  <p className="text-xs text-muted-foreground">{post.author.name}</p>
+                </Link>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {smartRecommendations.length ? (
+          <section className="mt-10 rounded-2xl border bg-card/70 p-6">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <h2 className="text-xl font-bold">Smart Recommendations</h2>
+            </div>
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              {smartRecommendations.map((post) => (
                 <Link key={post.id} href={`/post/${post.slug}`} className="rounded-md border p-3 transition hover:bg-muted/30">
                   <p className="font-semibold">{post.title}</p>
                   <p className="text-xs text-muted-foreground">{post.author.name}</p>

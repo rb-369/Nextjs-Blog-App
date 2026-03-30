@@ -2,7 +2,7 @@
 
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { posts } from "@/lib/db/schema";
+import { postRevisions, postTags, posts } from "@/lib/db/schema";
 import { slugify } from "@/lib/utils";
 import { syncPostTags } from "./social-actions";
 import { and, eq, ne } from "drizzle-orm";
@@ -47,6 +47,8 @@ export async function createPost(formData: FormData) {
         const coverImageRaw = String(formData.get("coverImage") ?? "").trim();
         const content = String(formData.get("content") ?? "").trim();
         const coverImage = coverImageRaw ? coverImageRaw : null;
+        const publishMode = String(formData.get("publishMode") ?? "publish").trim();
+        const scheduledAtRaw = String(formData.get("scheduledAt") ?? "").trim();
 
         //implement extra validation
         if (!title) {
@@ -76,6 +78,20 @@ export async function createPost(formData: FormData) {
         //create the slug from the post title
         const slug = slugify(title);
 
+        const scheduledAt = scheduledAtRaw ? new Date(scheduledAtRaw) : null;
+
+        if (publishMode === "schedule" && (!scheduledAt || Number.isNaN(scheduledAt.getTime()))) {
+            return {
+                success: false,
+                message: "Please provide a valid schedule date"
+            }
+        }
+
+        const isDraft = publishMode === "draft";
+        const isScheduled = publishMode === "schedule";
+        const finalStatus = isDraft ? "draft" : isScheduled ? "scheduled" : "published";
+        const shouldPublishNow = finalStatus === "published";
+
         //check if the slug already exists
         const existingPost = await db.query.posts.findFirst({
             where: eq(posts.slug, slug) // eq means equal "="
@@ -95,6 +111,10 @@ export async function createPost(formData: FormData) {
             content,
             coverImage,
             slug,
+            status: finalStatus,
+            published: shouldPublishNow,
+            scheduledAt: isScheduled ? scheduledAt : null,
+            publishedAt: shouldPublishNow ? new Date() : null,
             authorId: session.user.id,
         }).returning();
 
@@ -106,6 +126,8 @@ export async function createPost(formData: FormData) {
         revalidatePath("/")
         revalidatePath(`/post/${slug}`)
         revalidatePath("/profile")
+        revalidatePath("/following")
+        revalidatePath("/analytics")
 
         return {
             success: true,
@@ -146,6 +168,8 @@ export async function updatePost(postId: number, formData: FormData) {
         const coverImageRaw = String(formData.get("coverImage") ?? "").trim();
         const content = String(formData.get("content") ?? "").trim();
         const coverImage = coverImageRaw ? coverImageRaw : null;
+        const publishMode = String(formData.get("publishMode") ?? "publish").trim();
+        const scheduledAtRaw = String(formData.get("scheduledAt") ?? "").trim();
 
         //implement extra validation
         if (!title) {
@@ -173,6 +197,19 @@ export async function updatePost(postId: number, formData: FormData) {
         }
 
         const slug = slugify(title);
+        const scheduledAt = scheduledAtRaw ? new Date(scheduledAtRaw) : null;
+
+        if (publishMode === "schedule" && (!scheduledAt || Number.isNaN(scheduledAt.getTime()))) {
+            return {
+                success: false,
+                message: "Please provide a valid schedule date"
+            }
+        }
+
+        const isDraft = publishMode === "draft";
+        const isScheduled = publishMode === "schedule";
+        const finalStatus = isDraft ? "draft" : isScheduled ? "scheduled" : "published";
+        const shouldPublishNow = finalStatus === "published";
 
         const exists = await db.query.posts.findFirst({
             where: and(eq(posts.slug, slug), ne(posts.id, postId))
@@ -197,6 +234,23 @@ export async function updatePost(postId: number, formData: FormData) {
             }
         }
 
+        const existingTagNames = (await db.query.postTags.findMany({
+            where: eq(postTags.postId, postId),
+            with: { tag: true },
+        })).map((item) => item.tag?.name).filter(Boolean).join(", ");
+
+        await db.insert(postRevisions).values({
+            postId,
+            editorId: session.user.id,
+            title: updatedPost.title,
+            description: updatedPost.description,
+            category: updatedPost.category,
+            coverImage: updatedPost.coverImage,
+            content: updatedPost.content,
+            slug: updatedPost.slug,
+            tagsSnapshot: existingTagNames,
+        });
+
         await db.update(posts).set({
             title,
             description,
@@ -204,6 +258,10 @@ export async function updatePost(postId: number, formData: FormData) {
             content,
             coverImage,
             slug,
+            status: finalStatus,
+            published: shouldPublishNow,
+            scheduledAt: isScheduled ? scheduledAt : null,
+            publishedAt: shouldPublishNow ? new Date() : updatedPost.publishedAt,
             updatedAt: new Date()
         }).where(eq(posts.id, postId))
 
@@ -212,6 +270,8 @@ export async function updatePost(postId: number, formData: FormData) {
         revalidatePath("/");
         revalidatePath(`/post/${slug}`);
         revalidatePath(`/profile`)
+        revalidatePath("/following")
+        revalidatePath("/analytics")
 
         return {
             success: true,
@@ -266,6 +326,7 @@ export async function deletePost(postId: number) {
 
         revalidatePath("/");
         revalidatePath("/profile");
+        revalidatePath("/following");
 
         return {
             success: true,
@@ -278,5 +339,71 @@ export async function deletePost(postId: number) {
             success: false,
             message: "Failed to Delete Post! :( " + e
         }
+    }
+}
+
+export async function restorePostRevision(postId: number, revisionId: number) {
+    try {
+        const session = await auth.api.getSession({
+            headers: await headers(),
+        });
+
+        if (!session?.user) {
+            return {
+                success: false,
+                message: "You must be logged in to restore revisions",
+            };
+        }
+
+        const post = await db.query.posts.findFirst({
+            where: eq(posts.id, postId),
+        });
+
+        if (!post || post.authorId !== session.user.id) {
+            return {
+                success: false,
+                message: "Only post owner can restore revisions",
+            };
+        }
+
+        const revision = await db.query.postRevisions.findFirst({
+            where: and(eq(postRevisions.id, revisionId), eq(postRevisions.postId, postId)),
+        });
+
+        if (!revision) {
+            return {
+                success: false,
+                message: "Revision not found",
+            };
+        }
+
+        await db.update(posts).set({
+            title: revision.title,
+            description: revision.description,
+            category: revision.category,
+            coverImage: revision.coverImage,
+            content: revision.content,
+            slug: revision.slug,
+            updatedAt: new Date(),
+        }).where(eq(posts.id, postId));
+
+        await syncPostTags(postId, revision.tagsSnapshot ?? "");
+
+        revalidatePath("/");
+        revalidatePath(`/post/${revision.slug}`);
+        revalidatePath("/profile");
+        revalidatePath("/analytics");
+
+        return {
+            success: true,
+            message: "Revision restored",
+            slug: revision.slug,
+        };
+    } catch (e) {
+        console.log(e);
+        return {
+            success: false,
+            message: "Failed to restore revision",
+        };
     }
 }

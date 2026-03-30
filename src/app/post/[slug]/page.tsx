@@ -1,4 +1,5 @@
 import PostContent from "@/components/post/post-content";
+import PostViewTracker from "@/components/post/post-view-tracker";
 import { auth } from "@/lib/auth";
 import { getPostBySlug, getPostCommentsWithReplies, getPostEngagementCounts, getUserPostEngagementState } from "@/lib/db/queries";
 import { headers } from "next/headers";
@@ -34,6 +35,7 @@ async function PostDetailsPage({ params }: { params: Promise<{ slug: string }> }
   return (
     <main className="py-10">
       <div className="max-w-4xl mx-auto ">
+          <PostViewTracker postId={post.id} />
           <PostContent post={post} isAuthor={isAuthor} engagement={engagement} userState={userState} comments={comments}/>
       </div>
     </main>

@@ -43,6 +43,13 @@
       "when": 1774771102282,
       "tag": "0005_high_apocalypse",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1774852800000,
+      "tag": "0006_resolute_velocity",
+      "breakpoints": true
     }
   ]
 }

@@ -7,6 +7,7 @@ import { CalendarDays, Pencil, UserRound } from "lucide-react"
 import DeletePostButton from "./delete-post-button"
 import PostInteractions from "./post-interactions"
 import PostComments from "./post-comments"
+import Image from "next/image"
 
 
 
@@ -15,8 +16,8 @@ function PostContent({ post, isAuthor, engagement, userState, comments }: PostCo
     return (
         <Card className="overflow-hidden border-border/70 bg-card/80">
             {post.coverImage ? (
-                <div className="h-56 w-full overflow-hidden md:h-80">
-                    <img src={post.coverImage} alt={post.title} className="h-full w-full object-cover" />
+                <div className="relative h-56 w-full overflow-hidden md:h-80">
+                    <Image src={post.coverImage} alt={post.title} fill sizes="100vw" className="h-full w-full object-cover" />
                 </div>
             ) : null}
             <CardHeader className="space-y-4">

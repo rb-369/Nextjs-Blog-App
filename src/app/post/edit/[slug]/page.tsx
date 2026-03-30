@@ -1,8 +1,9 @@
 import NotFoundPage from "@/app/not-found";
 import Container from "@/components/layout/container";
 import PostForm from "@/components/post/post-form";
+import RevisionHistory from "@/components/post/revision-history";
 import { auth } from "@/lib/auth";
-import { getPostBySlug } from "@/lib/db/queries";
+import { getPostBySlug, getPostRevisionHistory } from "@/lib/db/queries";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -27,6 +28,9 @@ async function EditPostPage({ params }: { params: Promise<{ slug: string }> }) {
   if (post?.authorId !== session.user.id) {
     redirect("/");
   }
+
+  const revisions = await getPostRevisionHistory(post.id, session.user.id);
+
   return (
     <Container>
       <h1 className="max-w-2xl font-bold text-4xl mt-10 mb-6">
@@ -39,9 +43,19 @@ async function EditPostPage({ params }: { params: Promise<{ slug: string }> }) {
         category: post.category,
         tags: (post.postTags ?? []).map((item) => item.tag.name).join(", "),
         coverImage: post.coverImage,
+        status: post.status,
+        scheduledAt: post.scheduledAt ? new Date(post.scheduledAt).toISOString().slice(0, 16) : "",
         content: post.content,
         slug: post.slug
       }} />
+      <RevisionHistory
+        postId={post.id}
+        revisions={revisions.map((item) => ({
+          id: item.id,
+          title: item.title,
+          createdAt: item.createdAt,
+        }))}
+      />
     </Container>
   )
 }

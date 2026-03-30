@@ -4,7 +4,7 @@ import ViewTrackedLink from "@/components/post/view-tracked-link";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ArrowUpRight, SearchIcon, Sparkles } from "lucide-react";
-import { getAllPosts } from "@/lib/db/queries";
+import { searchPostsAdvanced } from "@/lib/db/queries";
 import { headers } from "next/headers";
 
 const quickTags = [
@@ -25,22 +25,26 @@ function getReadTime(content: string) {
 async function SearchPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; tag?: string; author?: string; sort?: "newest" | "trending"; minRead?: string; from?: string; to?: string }>;
 }) {
   const params = await searchParams;
   const query = (params.q ?? "").trim();
-  const normalizedQuery = query.toLowerCase();
+  const tag = (params.tag ?? "").trim();
+  const author = (params.author ?? "").trim();
+  const sort = params.sort === "trending" ? "trending" : "newest";
+  const minRead = Number(params.minRead ?? "0") || 0;
+  const from = (params.from ?? "").trim();
+  const to = (params.to ?? "").trim();
   const session = await auth.api.getSession({ headers: await headers() });
-  const allPosts = await getAllPosts(session?.user?.id);
-
-  const filteredPosts = normalizedQuery
-    ? allPosts.filter((post) => {
-        const haystack = [post.title, post.description, post.content, post.author?.name ?? ""]
-          .join(" ")
-          .toLowerCase();
-        return haystack.includes(normalizedQuery);
-      })
-    : allPosts;
+  const filteredPosts = await searchPostsAdvanced({
+    query,
+    tag,
+    author,
+    sort,
+    minReadMinutes: minRead || undefined,
+    dateFrom: from ? new Date(from) : undefined,
+    dateTo: to ? new Date(to) : undefined,
+  }, session?.user?.id);
 
   return (
     <section className="relative overflow-hidden py-8 md:py-12">
@@ -50,7 +54,7 @@ async function SearchPage({
         <header className="rounded-3xl border bg-card/80 p-6 shadow-sm backdrop-blur md:p-8">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             <Sparkles className="size-3.5" />
-            Search The Blog
+            Search VELO
           </div>
 
           <h1 className="text-3xl font-black tracking-tight md:text-5xl">
@@ -60,7 +64,7 @@ async function SearchPage({
             Search guides, tutorials, and implementation notes. Use a keyword, then narrow with quick topics.
           </p>
 
-          <form action="/search" method="get" className="mt-6 flex flex-col gap-3 md:flex-row">
+          <form action="/search" method="get" className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-6">
             <div className="relative flex-1">
               <SearchIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -71,9 +75,18 @@ async function SearchPage({
                 defaultValue={query}
               />
             </div>
+            <Input name="tag" placeholder="tag" className="h-11" defaultValue={tag} />
+            <Input name="author" placeholder="author" className="h-11" defaultValue={author} />
+            <Input name="minRead" type="number" min={0} placeholder="min read" className="h-11" defaultValue={minRead || ""} />
+            <select name="sort" className="h-11 rounded-md border bg-background px-3 text-sm" defaultValue={sort}>
+              <option value="newest">Newest</option>
+              <option value="trending">Trending</option>
+            </select>
             <Button type="submit" className="h-11 px-6">
               Search
             </Button>
+            <Input name="from" type="date" className="h-11" defaultValue={from} />
+            <Input name="to" type="date" className="h-11" defaultValue={to} />
           </form>
 
           <div className="mt-4 flex flex-wrap gap-2">

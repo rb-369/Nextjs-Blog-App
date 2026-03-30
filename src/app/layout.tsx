@@ -15,8 +15,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "RB's Next JS Blog App",
-  description: "Next js 15 blog app using, zustand, drizzle, and postgres",
+  title: "VELO",
+  description: "VELO is a full-stack publishing platform built with Next.js, auth, and PostgreSQL.",
+  icons: {
+    icon: "/velo_logo_without_bg.png",
+    shortcut: "/velo_logo_without_bg.png",
+    apple: "/velo_logo_without_bg.png",
+  },
 };
 
 export default function RootLayout({

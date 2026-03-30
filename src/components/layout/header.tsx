@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "../ui/button";
 import { useSession } from "@/lib/auth-client";
 import UserMenu from "../auth-comp/user-menu";
@@ -29,6 +30,12 @@ function Header() {
       label: "Notifications", href: "/notifications"
     },
     {
+      label: "Following", href: "/following"
+    },
+    {
+      label: "Moderation", href: "/moderation"
+    },
+    {
       label: "Search Posts", href: "/search"
     },
     {
@@ -41,8 +48,16 @@ function Header() {
 
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-6">
-          <Link href={"/"} className="font-bold text-xl">
-            RB&apos;s Next.js Blog App
+          <Link href={"/"} className="flex items-center gap-0.9 font-bold text-xl">
+            <Image
+              src="/velo_logo_without_bg.svg"
+              alt="VELO logo"
+              width={36}
+              height={36}
+              className="h-9 w-auto"
+              priority
+            />
+            <span>VELO</span>
           </Link>
           <nav className=" md:flex items-center gap-6">
             {

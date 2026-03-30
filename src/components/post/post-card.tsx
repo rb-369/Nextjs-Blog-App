@@ -4,6 +4,7 @@ import Link from "next/link"
 import ViewTrackedLink from "./view-tracked-link"
 import { estimateReadTime, formatDate } from "@/lib/utils"
 import { ArrowUpRight, CalendarDays } from "lucide-react"
+import Image from "next/image"
 
 
 function PostCard({post}: PostCardProps) {
@@ -11,10 +12,12 @@ function PostCard({post}: PostCardProps) {
   return (
   <Card className="group h-full overflow-hidden border-border/70 bg-card/70 transition hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-lg">
     {post.coverImage ? (
-      <div className="h-40 w-full overflow-hidden">
-        <img
+      <div className="relative h-40 w-full overflow-hidden">
+        <Image
           src={post.coverImage}
           alt={post.title}
+          fill
+          sizes="(max-width: 768px) 100vw, 33vw"
           className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
         />
       </div>
