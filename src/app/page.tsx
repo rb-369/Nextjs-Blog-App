@@ -8,7 +8,7 @@ import { ArrowUpRight, Sparkles } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "VELO: A Blog App",
-  description: "This a web app created with Next.js"
+  description: "This a web blog app created with Next.js"
 }
 
 export default async function Home() {
@@ -33,7 +33,7 @@ export default async function Home() {
             Fresh stories and tutorials
           </div>
           <h1 className="max-w-3xl text-4xl font-black tracking-tight md:text-5xl">
-            Build better with thoughtful posts on Next.js, auth, and full-stack workflows.
+            Build better with thoughtful posts on VELO.
           </h1>
           <p className="mt-3 max-w-2xl text-sm text-muted-foreground md:text-base">
             Practical notes from real implementation work. Browse the latest posts or publish your own.

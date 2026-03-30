@@ -25,7 +25,7 @@ async function YourPosts() {
         <section className="mt-10">
             <div className="mb-6 flex items-center justify-between gap-4">
                 <h1 className="text-3xl font-black tracking-tight">Your Posts</h1>
-                <Link href="/post/create" className="rounded-md border px-3 py-1.5 text-sm font-semibold transition hover:border-foreground/20">
+                <Link href="/post/create" className="rounded-md border-2 border-zinc-500 px-3 py-1.5 text-sm font-semibold transition-colors duration-200 hover:border-foreground/20 dark:border-zinc-200 dark:hover:border-zinc-400">
                     Create New
                 </Link>
             </div>

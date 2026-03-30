@@ -18,7 +18,40 @@ import {
     users,
 } from "./schema";
 
+let hasCheckedPostLifecycleColumns = false;
+let hasPostLifecycleColumns = false;
+
+async function canUsePostLifecycleColumns() {
+    if (hasCheckedPostLifecycleColumns) {
+        return hasPostLifecycleColumns;
+    }
+
+    try {
+        const result = await db.execute(sql`
+            select count(*)::int as count
+            from information_schema.columns
+            where table_schema = 'public'
+              and table_name = 'posts'
+              and column_name in ('status', 'scheduled_at', 'published_at')
+        `);
+
+        const countValue = Number((result.rows?.[0] as { count?: number | string } | undefined)?.count ?? 0);
+        hasPostLifecycleColumns = countValue === 3;
+    } catch {
+        hasPostLifecycleColumns = false;
+    }
+
+    hasCheckedPostLifecycleColumns = true;
+    return hasPostLifecycleColumns;
+}
+
 async function publishDueScheduledPosts() {
+    const supportsPostLifecycle = await canUsePostLifecycleColumns();
+
+    if (!supportsPostLifecycle) {
+        return;
+    }
+
     await db
         .update(posts)
         .set({

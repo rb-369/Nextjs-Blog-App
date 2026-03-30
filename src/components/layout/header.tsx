@@ -72,7 +72,7 @@ function Header() {
 
         <div className="flex items-center gap-4">
             <div className="hidden md:block">
-              {/* Keep an placeholder for search */}
+              
             </div>
             {/* placeholder for theme toggle */}
             <ThemeToggle/>
