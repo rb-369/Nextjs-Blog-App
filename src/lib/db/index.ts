@@ -5,11 +5,13 @@ import * as schema from "./schema";
 const connectionString =
     process.env.DB_URL ||
     process.env.DATABASE_URL ||
-    process.env.POSTGRES_URL;
+    process.env.POSTGRES_URL ||
+    process.env.POSTGRES_PRISMA_URL ||
+    process.env.POSTGRES_URL_NON_POOLING;
 
 if (!connectionString) {
     throw new Error(
-        "Database connection string is missing. Set DB_URL (or DATABASE_URL/POSTGRES_URL) in environment variables."
+        "Database connection string is missing. Set DB_URL (or DATABASE_URL/POSTGRES_URL/POSTGRES_PRISMA_URL/POSTGRES_URL_NON_POOLING) in environment variables."
     );
 }
 
