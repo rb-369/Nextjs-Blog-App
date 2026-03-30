@@ -4,10 +4,29 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { postRevisions, postTags, posts } from "@/lib/db/schema";
 import { slugify } from "@/lib/utils";
+import { invalidateCacheTags } from "@/lib/cache/redis-cache";
 import { syncPostTags } from "./social-actions";
 import { and, eq, ne } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { headers } from "next/headers";
+
+async function invalidatePostTags(options: { slug?: string; authorId?: string }) {
+    const tags = ["posts", "feed:anon"];
+
+    if (options.slug) {
+        tags.push(`post:${options.slug}`);
+    }
+
+    if (options.authorId) {
+        tags.push(`feed:${options.authorId}`);
+    }
+
+    await invalidateCacheTags(tags);
+
+    for (const tag of tags) {
+        revalidateTag(tag, "max");
+    }
+}
 
 function isValidCoverImage(value: string): boolean {
     if (/^data:image\/[a-zA-Z0-9.+-]+;base64,/i.test(value)) {
@@ -123,6 +142,7 @@ export async function createPost(formData: FormData) {
         }
 
         //revalidating the home page to get the latest posts
+        await invalidatePostTags({ slug, authorId: session.user.id });
         revalidatePath("/")
         revalidatePath(`/post/${slug}`)
         revalidatePath("/profile")
@@ -267,6 +287,11 @@ export async function updatePost(postId: number, formData: FormData) {
 
         await syncPostTags(postId, tagInput);
 
+        await invalidatePostTags({ slug, authorId: session.user.id });
+        if (updatedPost.slug !== slug) {
+            await invalidateCacheTags([`post:${updatedPost.slug}`]);
+            revalidateTag(`post:${updatedPost.slug}`, "max");
+        }
         revalidatePath("/");
         revalidatePath(`/post/${slug}`);
         revalidatePath(`/profile`)
@@ -324,6 +349,7 @@ export async function deletePost(postId: number) {
 
         await db.delete(posts).where(eq(posts.id, postId));
 
+        await invalidatePostTags({ slug: delPost.slug, authorId: delPost.authorId });
         revalidatePath("/");
         revalidatePath("/profile");
         revalidatePath("/following");
@@ -389,6 +415,11 @@ export async function restorePostRevision(postId: number, revisionId: number) {
 
         await syncPostTags(postId, revision.tagsSnapshot ?? "");
 
+        await invalidatePostTags({ slug: revision.slug, authorId: post.authorId });
+        if (post.slug !== revision.slug) {
+            await invalidateCacheTags([`post:${post.slug}`]);
+            revalidateTag(`post:${post.slug}`, "max");
+        }
         revalidatePath("/");
         revalidatePath(`/post/${revision.slug}`);
         revalidatePath("/profile");

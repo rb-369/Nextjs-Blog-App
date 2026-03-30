@@ -1,5 +1,6 @@
 import { and, asc, count, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { db } from ".";
+import { getOrSetRedisCache } from "@/lib/cache/redis-cache";
 import {
     authorBlockWords,
     authorSubscriptions,
@@ -63,6 +64,19 @@ async function publishDueScheduledPosts() {
         .where(and(eq(posts.published, false), sql`${posts.scheduledAt} is not null and ${posts.scheduledAt} <= now()`));
 }
 
+async function runCached<T>(
+    keyParts: string[],
+    tags: string[],
+    revalidateSeconds: number,
+    getData: () => Promise<T>
+) {
+    return getOrSetRedisCache({
+        keyParts,
+        tags,
+        ttlSeconds: revalidateSeconds,
+        getData,
+    });
+}
 
 
 //get all posts
@@ -70,35 +84,42 @@ export async function getAllPosts(userId?: string) {
     try {
         await publishDueScheduledPosts();
 
-        const allPosts = await db.query.posts.findMany({
-            where: eq(posts.published, true),
-            orderBy: [desc(posts.createdAt)],
-            with: {
-                author: true,
-                postTags: {
+        return runCached(
+            ["getAllPosts", userId ?? "anon"],
+            ["posts", userId ? `feed:${userId}` : "feed:anon"],
+            30,
+            async () => {
+                const allPosts = await db.query.posts.findMany({
+                    where: eq(posts.published, true),
+                    orderBy: [desc(posts.createdAt)],
                     with: {
-                        tag: true,
-                    },
-                },
+                        author: true,
+                        postTags: {
+                            with: {
+                                tag: true,
+                            },
+                        },
+                    }
+                });
+
+                if (!userId) {
+                    return allPosts;
+                }
+
+                const hidden = await db.query.notInterestedPosts.findMany({
+                    where: eq(notInterestedPosts.userId, userId),
+                });
+
+                const reported = await db.query.postReports.findMany({
+                    where: eq(postReports.userId, userId),
+                });
+
+                const hiddenPostIds = new Set(hidden.map((entry) => entry.postId));
+                const reportedPostIds = new Set(reported.map((entry) => entry.postId));
+
+                return allPosts.filter((post) => !hiddenPostIds.has(post.id) && !reportedPostIds.has(post.id));
             }
-        })
-
-        if (!userId) {
-            return allPosts;
-        }
-
-        const hidden = await db.query.notInterestedPosts.findMany({
-            where: eq(notInterestedPosts.userId, userId),
-        });
-
-        const reported = await db.query.postReports.findMany({
-            where: eq(postReports.userId, userId),
-        });
-
-        const hiddenPostIds = new Set(hidden.map((entry) => entry.postId));
-        const reportedPostIds = new Set(reported.map((entry) => entry.postId));
-
-        return allPosts.filter((post) => !hiddenPostIds.has(post.id) && !reportedPostIds.has(post.id));
+        );
 
     } catch (e) {
         console.log(e);
@@ -111,19 +132,22 @@ export async function getPostBySlug(slug: string) {
     try {
         await publishDueScheduledPosts();
 
-        const post = await db.query.posts.findFirst({
-            where: eq(posts.slug, slug),
-            with: {
-                author: true,
-                postTags: {
-                    with: {
-                        tag: true,
+        return runCached(
+            ["getPostBySlug", slug],
+            ["posts", `post:${slug}`],
+            60,
+            async () => db.query.posts.findFirst({
+                where: eq(posts.slug, slug),
+                with: {
+                    author: true,
+                    postTags: {
+                        with: {
+                            tag: true,
+                        },
                     },
-                },
-            }
-        })
-
-        return post;
+                }
+            })
+        );
     } catch (e) {
         console.log(e);
         return null;
@@ -157,20 +181,23 @@ export async function getYourPosts(userId: string) {
     try {
         await publishDueScheduledPosts();
 
-        const OwnPosts = await db.query.posts.findMany({
-            where: eq(posts.authorId, userId),
-            orderBy: [desc(posts.createdAt)],
-            with: {
-                author: true,
-                postTags: {
-                    with: {
-                        tag: true,
+        return runCached(
+            ["getYourPosts", userId],
+            ["posts", `feed:${userId}`],
+            30,
+            async () => db.query.posts.findMany({
+                where: eq(posts.authorId, userId),
+                orderBy: [desc(posts.createdAt)],
+                with: {
+                    author: true,
+                    postTags: {
+                        with: {
+                            tag: true,
+                        },
                     },
-                },
-            }
-        });
-
-        return OwnPosts;
+                }
+            })
+        );
     } catch (e) {
         console.log(e);
         return null;
@@ -611,27 +638,34 @@ export async function getPostRevisionHistory(postId: number, authorId: string) {
 export async function getFollowedAuthorsFeed(userId: string) {
     await publishDueScheduledPosts();
 
-    const subscriptions = await db.query.authorSubscriptions.findMany({
-        where: eq(authorSubscriptions.userId, userId),
-    });
+    return runCached(
+        ["getFollowedAuthorsFeed", userId],
+        ["posts", `feed:${userId}`],
+        30,
+        async () => {
+            const subscriptions = await db.query.authorSubscriptions.findMany({
+                where: eq(authorSubscriptions.userId, userId),
+            });
 
-    const authorIds = subscriptions.map((item) => item.authorId);
-    if (!authorIds.length) {
-        return [];
-    }
+            const authorIds = subscriptions.map((item) => item.authorId);
+            if (!authorIds.length) {
+                return [];
+            }
 
-    return db.query.posts.findMany({
-        where: and(inArray(posts.authorId, authorIds), eq(posts.published, true)),
-        orderBy: [desc(posts.createdAt)],
-        with: {
-            author: true,
-            postTags: {
+            return db.query.posts.findMany({
+                where: and(inArray(posts.authorId, authorIds), eq(posts.published, true)),
+                orderBy: [desc(posts.createdAt)],
                 with: {
-                    tag: true,
+                    author: true,
+                    postTags: {
+                        with: {
+                            tag: true,
+                        },
+                    },
                 },
-            },
-        },
-    });
+            });
+        }
+    );
 }
 
 export async function getSmartRecommendations(userId?: string, limit = 6) {

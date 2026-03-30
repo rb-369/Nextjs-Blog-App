@@ -1,6 +1,7 @@
 "use server";
 
 import { auth } from "@/lib/auth";
+import { invalidateCacheTags } from "@/lib/cache/redis-cache";
 import { db } from "@/lib/db";
 import {
     authorBlockWords,
@@ -19,7 +20,7 @@ import {
 } from "@/lib/db/schema";
 import { slugify } from "@/lib/utils";
 import { and, eq } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { headers } from "next/headers";
 
 async function getSession() {
@@ -36,6 +37,36 @@ async function requireSession() {
     }
 
     return session;
+}
+
+async function revalidatePostTagsById(postId: number, viewerId?: string) {
+    const tags = ["posts", "feed:anon"];
+
+    if (viewerId) {
+        tags.push(`feed:${viewerId}`);
+    }
+
+    const post = await db.query.posts.findFirst({
+        where: eq(posts.id, postId),
+        columns: {
+            slug: true,
+            authorId: true,
+        },
+    });
+
+    if (post?.slug) {
+        tags.push(`post:${post.slug}`);
+    }
+
+    if (post?.authorId) {
+        tags.push(`feed:${post.authorId}`);
+    }
+
+    await invalidateCacheTags(tags);
+
+    for (const tag of tags) {
+        revalidateTag(tag, "max");
+    }
 }
 
 export async function syncPostTags(postId: number, rawTagInput: string) {
@@ -113,6 +144,7 @@ export async function togglePostReaction(postId: number, reactionType: "like" | 
                 .where(eq(postReactions.id, existing.id));
         }
 
+        await revalidatePostTagsById(postId, session.user.id);
         revalidatePath("/");
         revalidatePath("/analytics");
         return { success: true };
@@ -140,6 +172,7 @@ export async function toggleBookmark(postId: number) {
             });
         }
 
+        await revalidatePostTagsById(postId, session.user.id);
         revalidatePath("/analytics");
         return { success: true };
     } catch (error) {
@@ -171,6 +204,9 @@ export async function toggleAuthorSubscription(authorId: string) {
             });
         }
 
+        await invalidateCacheTags([`feed:${session.user.id}`, "posts"]);
+        revalidateTag(`feed:${session.user.id}`, "max");
+        revalidateTag("posts", "max");
         revalidatePath("/analytics");
         return { success: true };
     } catch (error) {
@@ -197,6 +233,8 @@ export async function toggleAuthorNotify(authorId: string) {
             .set({ notifyOnPost: !existing.notifyOnPost })
             .where(eq(authorSubscriptions.id, existing.id));
 
+        await invalidateCacheTags([`feed:${session.user.id}`]);
+        revalidateTag(`feed:${session.user.id}`, "max");
         revalidatePath("/analytics");
         return { success: true, notifyOnPost: !existing.notifyOnPost };
     } catch (error) {
@@ -221,6 +259,7 @@ export async function markPostAsNotInterested(postId: number) {
             });
         }
 
+        await revalidatePostTagsById(postId, session.user.id);
         return { success: true };
     } catch (error) {
         return { success: false, message: error instanceof Error ? error.message : "Failed to mark not interested" };
@@ -255,6 +294,7 @@ export async function reportPost(postId: number, reason: string) {
             });
         }
 
+        await revalidatePostTagsById(postId, session.user.id);
         revalidatePath("/");
         revalidatePath("/search");
 
@@ -274,6 +314,7 @@ export async function recordPostShare(postId: number, channel = "copy_link") {
             channel,
         });
 
+        await revalidatePostTagsById(postId, session?.user?.id);
         revalidatePath("/analytics");
         return { success: true };
     } catch (error) {
@@ -292,6 +333,7 @@ export async function recordPostView(postId: number, sessionId?: string, ipAddre
             ipAddress,
         });
 
+        await revalidatePostTagsById(postId, session?.user?.id);
         revalidatePath("/analytics");
         return { success: true };
     } catch (error) {
@@ -332,6 +374,7 @@ export async function addComment(postId: number, content: string, parentId?: num
             status: commentStatus,
         });
 
+        await revalidatePostTagsById(postId, session.user.id);
         revalidatePath(`/post`);
         revalidatePath("/analytics");
         return {
@@ -365,6 +408,7 @@ export async function deleteComment(commentId: number) {
         await db.delete(comments).where(eq(comments.id, commentId));
         await db.delete(comments).where(eq(comments.parentId, commentId));
 
+        await revalidatePostTagsById(comment.postId, session.user.id);
         revalidatePath(`/post/${comment.post.slug}`);
         revalidatePath("/analytics");
         return { success: true, message: "Comment removed" };
@@ -398,6 +442,7 @@ export async function moderateComment(commentId: number, status: "approved" | "r
             })
             .where(eq(comments.id, commentId));
 
+        await revalidatePostTagsById(comment.postId, session.user.id);
         revalidatePath("/analytics");
         return { success: true };
     } catch (error) {

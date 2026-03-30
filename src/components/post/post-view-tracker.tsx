@@ -19,9 +19,10 @@ function getOrCreateViewSessionKey() {
 }
 
 function PostViewTracker({ postId }: PostViewTrackerProps) {
-    const startedAtRef = useRef<number>(Date.now());
+    const startedAtRef = useRef<number>(0);
 
     useEffect(() => {
+        startedAtRef.current = Date.now();
         const sessionKey = getOrCreateViewSessionKey();
 
         fetch("/api/post-view", {
