@@ -43,13 +43,17 @@ Create `.env` in `blog-project`:
 DB_URL=postgresql://<user>:<password>@<host>:<port>/<database>
 BETTER_AUTH_SECRET=<strong-random-secret>
 BASE_URL=http://localhost:3000
+NEXT_PUBLIC_BASE_URL=http://localhost:3000
 CLOUDINARY_CLOUD_NAME=<cloud-name>
 CLOUDINARY_URL=cloudinary://<api-key>:<api-secret>@<cloud-name>
+UPSTASH_REDIS_REST_URL=<upstash-redis-rest-url>
+UPSTASH_REDIS_REST_TOKEN=<upstash-redis-rest-token>
 ```
 
 Notes:
 
 - Use a strong `BETTER_AUTH_SECRET` (at least 32 chars).
+- In production (Vercel), set `BASE_URL` and `NEXT_PUBLIC_BASE_URL` to your deployed domain, e.g. `https://nextjs-blog-app-eight-blush.vercel.app`.
 - Cloudinary is configured for remote image rendering in `next.config.ts`.
 
 ## Setup
