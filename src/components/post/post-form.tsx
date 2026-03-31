@@ -258,14 +258,14 @@ function PostForm({ isEditing, post }: PostFormProps) {
                         value={selectedCategory}
                         onChange={(e) => handleCategoryChange(e.target.value)}
                         disabled={isPending || isUploadingImage}
-                        className="h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                        className="h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm text-foreground shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 dark:[color-scheme:dark]"
                     >
                         {PRESET_CATEGORIES.map((category) => (
-                            <option key={category} value={category}>
+                            <option key={category} value={category} className="bg-background text-foreground">
                                 {category}
                             </option>
                         ))}
-                        <option value="other">Other</option>
+                        <option value="other" className="bg-background text-foreground">Other</option>
                     </select>
                     <input type="hidden" {...register("category")} />
                     {
@@ -340,11 +340,11 @@ function PostForm({ isEditing, post }: PostFormProps) {
                         defaultValue={isEditing && post?.status === "draft" ? "draft" : isEditing && post?.status === "scheduled" ? "schedule" : "publish"}
                         {...register("publishMode")}
                         disabled={isPending || isUploadingImage}
-                        className="h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                        className="h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm text-foreground shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 dark:[color-scheme:dark]"
                     >
-                        <option value="publish">Publish now</option>
-                        <option value="draft">Save as draft</option>
-                        <option value="schedule">Schedule</option>
+                        <option value="publish" className="bg-background text-foreground">Publish now</option>
+                        <option value="draft" className="bg-background text-foreground">Save as draft</option>
+                        <option value="schedule" className="bg-background text-foreground">Schedule</option>
                     </select>
                 </div>
 
