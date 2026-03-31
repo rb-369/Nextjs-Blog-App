@@ -7,9 +7,32 @@ import Link from "next/link";
 import { ArrowUpRight, Sparkles } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "VELO: A Blog App",
-  description: "This a web blog app created with Next.js"
-}
+  title: "Home",
+  description: "Discover projects, stories, and practical ideas from creators across different fields.",
+  keywords: [
+    "projects",
+    "creator stories",
+    "community blog",
+    "ideas",
+    "tutorials",
+    "portfolio posts",
+  ],
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "VELO | Discover Projects and Stories",
+    description: "Explore posts from creators and share your own project journey with the VELO community.",
+    url: "/",
+    images: ["/VELO_logo.png"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "VELO | Discover Projects and Stories",
+    description: "Explore posts from creators and share your own project journey.",
+    images: ["/VELO_logo.png"],
+  },
+};
 
 export default async function Home() {
 

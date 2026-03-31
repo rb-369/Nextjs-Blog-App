@@ -14,9 +14,60 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://nextjs-blog-app-akju.vercel.app";
+
 export const metadata: Metadata = {
-  title: "VELO",
-  description: "VELO is a full-stack publishing platform built with Next.js, auth, and PostgreSQL.",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "VELO | Share Projects, Stories, and Ideas",
+    template: "%s | VELO",
+  },
+  description: "VELO is a publishing community where anyone can share projects, stories, tutorials, and creative ideas.",
+  applicationName: "VELO",
+  keywords: [
+    "VELO",
+    "blog platform",
+    "project sharing",
+    "stories",
+    "creator community",
+    "publish posts",
+    "tech and non-tech projects",
+  ],
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    url: "/",
+    siteName: "VELO",
+    title: "VELO | Share Projects, Stories, and Ideas",
+    description: "A place for everyone to publish projects, write stories, and discover useful ideas.",
+    images: [
+      {
+        url: "/VELO_logo.png",
+        width: 1200,
+        height: 630,
+        alt: "VELO logo",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "VELO | Share Projects, Stories, and Ideas",
+    description: "A place for everyone to publish projects, write stories, and discover useful ideas.",
+    images: ["/VELO_logo.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
   icons: {
     icon: "/velo_logo_without_bg.png",
     shortcut: "/velo_logo_without_bg.png",
