@@ -6,9 +6,15 @@ import {
 } from "@/actions/social-actions";
 import { auth } from "@/lib/auth";
 import { getModerationDashboard } from "@/lib/db/queries";
+import type { Metadata } from "next";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+
+export const metadata: Metadata = {
+    title: "Moderation | VELO",
+    description: "Review reports, comments, and blocked words to keep your VELO content healthy.",
+};
 
 async function ModerationPage() {
     const session = await auth.api.getSession({ headers: await headers() });

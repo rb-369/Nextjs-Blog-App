@@ -1,6 +1,17 @@
 import PostCard from "@/components/post/post-card";
 import { getPostsByTag } from "@/lib/db/queries";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+
+export async function generateMetadata({ params }: { params: Promise<{ name: string }> }): Promise<Metadata> {
+    const { name } = await params;
+    const decodedName = decodeURIComponent(name);
+
+    return {
+        title: `#${decodedName} | VELO`,
+        description: `Browse posts tagged ${decodedName} on VELO.`,
+    };
+}
 
 async function TagPage({ params }: { params: Promise<{ name: string }> }) {
     const { name } = await params;

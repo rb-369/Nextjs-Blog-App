@@ -3,6 +3,12 @@ import { auth } from "@/lib/auth";
 import { getSavedPosts } from "@/lib/db/queries";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+    title: "Saved Posts | VELO",
+    description: "Access your bookmarked VELO posts in one place.",
+};
 
 async function SavedPostsPage() {
     const session = await auth.api.getSession({ headers: await headers() });

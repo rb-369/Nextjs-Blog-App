@@ -3,6 +3,12 @@ import PostList from "@/components/post/post-list";
 import { getFollowedAuthorsFeed } from "@/lib/db/queries";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+    title: "Following | VELO",
+    description: "Catch up on the latest posts from creators you follow on VELO.",
+};
 
 async function FollowingFeedPage() {
     const session = await auth.api.getSession({ headers: await headers() });

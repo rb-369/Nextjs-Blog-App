@@ -7,6 +7,12 @@ import { PlusCircle } from "lucide-react";
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getYourPosts } from "@/lib/db/queries";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Profile | VELO",
+  description: "Manage your VELO profile details and account activity.",
+};
 
 async function ProfilePage() {
 

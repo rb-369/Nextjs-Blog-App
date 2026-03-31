@@ -3,7 +3,25 @@ import PostViewTracker from "@/components/post/post-view-tracker";
 import { auth } from "@/lib/auth";
 import { getPostBySlug, getPostCommentsWithReplies, getPostEngagementCounts, getUserPostEngagementState } from "@/lib/db/queries";
 import { headers } from "next/headers";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+    const { slug } = await params;
+    const post = await getPostBySlug(slug);
+
+    if (!post) {
+      return {
+        title: "Post Not Found | VELO",
+        description: "The post you are looking for could not be found.",
+      };
+    }
+
+    return {
+      title: `${post.title} | VELO`,
+      description: post.description || "Read this post on VELO.",
+    };
+}
 
 
 

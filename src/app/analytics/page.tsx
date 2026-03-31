@@ -1,10 +1,16 @@
 import { auth } from "@/lib/auth";
 import AnalyticsCharts from "@/components/analytics/analytics-charts";
 import { getAuthorAnalytics } from "@/lib/db/queries";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { ArrowUpRight, BarChart3, Bookmark, Eye, MessageCircle, Share2, ThumbsDown, ThumbsUp, Users } from "lucide-react";
+
+export const metadata: Metadata = {
+    title: "Analytics | VELO",
+    description: "Track post performance, engagement, and audience growth on VELO.",
+};
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

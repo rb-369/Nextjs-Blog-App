@@ -5,7 +5,13 @@ import RevisionHistory from "@/components/post/revision-history";
 import { auth } from "@/lib/auth";
 import { getPostBySlug, getPostRevisionHistory } from "@/lib/db/queries";
 import { headers } from "next/headers";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+
+export const metadata: Metadata = {
+  title: "Edit Post | VELO",
+  description: "Update your existing post and manage revision history on VELO.",
+};
 
 
 async function EditPostPage({ params }: { params: Promise<{ slug: string }> }) {

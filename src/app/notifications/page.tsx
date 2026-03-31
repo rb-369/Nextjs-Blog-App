@@ -4,6 +4,12 @@ import { getNotificationCenter } from "@/lib/db/queries";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+    title: "Notifications | VELO",
+    description: "See new likes, comments, and follows from your VELO activity.",
+};
 
 async function NotificationsPage() {
     const session = await auth.api.getSession({ headers: await headers() });

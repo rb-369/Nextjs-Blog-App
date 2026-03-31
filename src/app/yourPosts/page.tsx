@@ -1,9 +1,15 @@
 import PostCard from "@/components/post/post-card"
 import { auth } from "@/lib/auth"
 import { getYourPosts } from "@/lib/db/queries"
+import type { Metadata } from "next";
 import { headers } from "next/headers"
 import Link from "next/link"
 import { redirect } from "next/navigation"
+
+export const metadata: Metadata = {
+    title: "Your Posts | VELO",
+    description: "Manage and review all posts authored by you on VELO.",
+};
 
 
 async function YourPosts() {

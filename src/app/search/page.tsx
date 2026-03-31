@@ -6,6 +6,12 @@ import { Button } from "@/components/ui/button";
 import { ArrowUpRight, SearchIcon, Sparkles } from "lucide-react";
 import { searchPostsAdvanced } from "@/lib/db/queries";
 import { headers } from "next/headers";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Search | VELO",
+  description: "Search VELO for posts, topics, and creators.",
+};
 
 const quickTags = [
   "nextjs",
