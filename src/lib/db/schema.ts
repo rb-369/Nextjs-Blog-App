@@ -8,9 +8,9 @@ export const users = pgTable("users", {
     name: varchar("name", { length: 255 }).notNull(),
     email: varchar("email", { length: 255 }).notNull().unique(),
     emailVerified: boolean("email_verified").default(false),
+    image: text("image"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
-
 });
 
 export const sessions = pgTable("sessions", {
@@ -33,7 +33,22 @@ export const accounts = pgTable("accounts", {
         notNull(),
     accountId: varchar("account_id", { length: 255 }).notNull(),
     providerId: varchar("provider_id", { length: 255 }).notNull(),
+    accessToken: text("access_token"),
+    refreshToken: text("refresh_token"),
+    idToken: text("id_token"),
+    accessTokenExpiresAt: timestamp("access_token_expires_at"),
+    refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
+    scope: text("scope"),
     password: text("password"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+})
+
+export const verifications = pgTable("verifications", {
+    id: varchar("id", { length: 255 }).primaryKey(),
+    identifier: varchar("identifier", { length: 255 }).notNull(),
+    value: text("value").notNull(),
+    expiresAt: timestamp("expires_at").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
 })
@@ -355,6 +370,7 @@ export const schema = {
     users,
     accounts,
     sessions,
+    verifications,
     posts,
     tags,
     postTags,
@@ -370,5 +386,4 @@ export const schema = {
     comments,
     authorBlockWords,
     notificationPreferences,
-
 }

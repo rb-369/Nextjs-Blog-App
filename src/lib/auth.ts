@@ -4,27 +4,26 @@ import { db } from './db'
 import * as schema from "./db/schema"
 
 function resolveBaseUrl() {
-    if (process.env.BASE_URL) {
-        return process.env.BASE_URL;
+    if (process.env.NODE_ENV === "production") {
+        if (process.env.NEXT_PUBLIC_BASE_URL && !process.env.NEXT_PUBLIC_BASE_URL.includes("localhost")) {
+            return process.env.NEXT_PUBLIC_BASE_URL;
+        }
+        if (process.env.NEXT_PUBLIC_APP_URL && !process.env.NEXT_PUBLIC_APP_URL.includes("localhost")) {
+            return process.env.NEXT_PUBLIC_APP_URL;
+        }
+        if (process.env.BASE_URL && !process.env.BASE_URL.includes("localhost")) {
+            return process.env.BASE_URL;
+        }
+        if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+            return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+        }
+        if (process.env.VERCEL_URL) {
+            return `https://${process.env.VERCEL_URL}`;
+        }
+        return "https://velo-blogs.vercel.app";
     }
 
-    if (process.env.NEXT_PUBLIC_BASE_URL) {
-        return process.env.NEXT_PUBLIC_BASE_URL;
-    }
-
-    if (process.env.NEXT_PUBLIC_APP_URL) {
-        return process.env.NEXT_PUBLIC_APP_URL;
-    }
-
-    if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
-        return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
-    }
-
-    if (process.env.VERCEL_URL) {
-        return `https://${process.env.VERCEL_URL}`;
-    }
-
-    return "https://velo-blogs.vercel.app";
+    return process.env.BASE_URL || process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 }
 
 export const auth = betterAuth({
@@ -47,7 +46,8 @@ export const auth = betterAuth({
             ...schema,
             user: schema.users,
             session: schema.sessions,
-            account: schema.accounts
+            account: schema.accounts,
+            verification: schema.verifications,
         }
     }),
     emailAndPassword: {
