@@ -8,7 +8,7 @@ import type { Metadata } from "next";
 import { Bell, MessageSquare, Reply, Rss } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Notifications | VELO",
+  title: "Notifications",
   description: "See new likes, comments, and follows from your VELO activity.",
 };
 

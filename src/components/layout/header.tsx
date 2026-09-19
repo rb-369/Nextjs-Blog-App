@@ -93,16 +93,21 @@ export default function Header() {
 
             {/* More (...) Dropdown */}
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
-                  className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:outline-none"
-                  aria-label="More navigation links"
-                >
-                  <span>More</span>
-                  <MoreHorizontal className="h-4 w-4" />
-                </button>
-              </DropdownMenuTrigger>
+              <div className="relative group flex items-center">
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:outline-none cursor-pointer"
+                    aria-label="More options"
+                    title="More"
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                  </button>
+                </DropdownMenuTrigger>
+                <span className="pointer-events-none absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md border border-border/80 bg-popover px-2 py-0.5 text-[10px] font-medium text-popover-foreground shadow-xs opacity-0 transition-opacity duration-150 group-hover:opacity-100 z-50">
+                  More
+                </span>
+              </div>
               <DropdownMenuContent align="start" className="w-56 p-1.5 shadow-lg border-border/80">
                 {moreNavItems.map((subItem) => {
                   const isSubActive = pathname === subItem.href;

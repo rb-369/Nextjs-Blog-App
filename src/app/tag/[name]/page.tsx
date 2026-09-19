@@ -14,7 +14,7 @@ export async function generateMetadata({
   const decodedName = decodeURIComponent(name);
 
   return {
-    title: `#${decodedName} | VELO`,
+    title: `#${decodedName}`,
     description: `Browse posts tagged #${decodedName} on VELO.`,
   };
 }

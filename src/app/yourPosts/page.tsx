@@ -8,7 +8,7 @@ import { redirect } from "next/navigation";
 import { FileText, PenSquare, Sparkles } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Your Posts | VELO",
+  title: "Your Posts",
   description: "Manage and review all posts authored by you on VELO.",
 };
 

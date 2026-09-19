@@ -23,13 +23,13 @@ export async function generateMetadata({
 
   if (!post) {
     return {
-      title: "Post Not Found | VELO",
+      title: "Post Not Found",
       description: "The post you are looking for could not be found.",
     };
   }
 
   return {
-    title: `${post.title} | VELO`,
+    title: post.title,
     description: post.description || "Read this post on VELO.",
     openGraph: {
       title: `${post.title} | VELO`,

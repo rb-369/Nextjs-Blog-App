@@ -13,7 +13,7 @@ import { redirect } from "next/navigation";
 import { Check, Flag, MessageSquare, ShieldAlert, ShieldCheck, X } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Moderation | VELO",
+  title: "Moderation",
   description: "Review reports, comments, and blocked words to keep your VELO content healthy.",
 };
 

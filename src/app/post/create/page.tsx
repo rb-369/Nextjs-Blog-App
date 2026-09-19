@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowLeft, PenSquare } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Create Post | VELO",
+  title: "Create Post",
   description: "Write and publish a new post to share your ideas on VELO.",
 };
 

@@ -10,7 +10,7 @@ import { getYourPosts } from "@/lib/db/queries";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Profile | VELO",
+  title: "Profile",
   description: "Manage your VELO profile details and account activity.",
 };
 

@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Analytics | VELO",
+  title: "Analytics",
   description: "Track post performance, engagement, and audience growth on VELO.",
 };
 

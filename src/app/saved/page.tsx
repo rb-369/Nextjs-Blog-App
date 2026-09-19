@@ -8,7 +8,7 @@ import Link from "next/link";
 import { Bookmark, Compass } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Saved Posts | VELO",
+  title: "Saved Posts",
   description: "Access your bookmarked VELO posts in one place.",
 };
 

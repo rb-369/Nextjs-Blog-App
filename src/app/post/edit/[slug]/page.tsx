@@ -10,7 +10,7 @@ import Link from "next/link";
 import { ArrowLeft, Pencil } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Edit Post | VELO",
+  title: "Edit Post",
   description: "Update your existing post and manage revision history on VELO.",
 };
 

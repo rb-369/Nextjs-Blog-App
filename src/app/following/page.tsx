@@ -8,7 +8,7 @@ import Link from "next/link";
 import { Compass, Users } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Following | VELO",
+  title: "Following",
   description: "Catch up on the latest posts from creators you follow on VELO.",
 };
 
