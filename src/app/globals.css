@@ -121,6 +121,25 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground selection:bg-primary/20 selection:text-primary min-h-[100dvh];
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
+
+@layer utilities {
+  .glass-card {
+    background-color: color-mix(in oklab, var(--card) 85%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
+  }
+  .glass-nav {
+    background-color: color-mix(in oklab, var(--background) 80%, transparent);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+  .accent-glow {
+    box-shadow: 0 0 50px -10px color-mix(in oklab, var(--primary) 20%, transparent);
+  }
+}
+

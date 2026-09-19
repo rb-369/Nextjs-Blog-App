@@ -1,89 +1,136 @@
-import { PostContentProps } from "@/lib/types"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card"
-import { estimateReadTime, formatDate, slugify } from "@/lib/utils"
-import { Button } from "../ui/button"
-import Link from "next/link"
-import { CalendarDays, Pencil, UserRound } from "lucide-react"
-import DeletePostButton from "./delete-post-button"
-import PostInteractions from "./post-interactions"
-import PostComments from "./post-comments"
-import Image from "next/image"
+import { PostContentProps } from "@/lib/types";
+import { estimateReadTime, formatDate, slugify } from "@/lib/utils";
+import { Button } from "../ui/button";
+import Link from "next/link";
+import { CalendarDays, Clock, Pencil, Tag, UserRound } from "lucide-react";
+import DeletePostButton from "./delete-post-button";
+import PostInteractions from "./post-interactions";
+import PostComments from "./post-comments";
+import Image from "next/image";
 
+export default function PostContent({
+  post,
+  isAuthor,
+  engagement,
+  userState,
+  comments,
+}: PostContentProps) {
+  const readTime = estimateReadTime(post.content);
 
+  return (
+    <article className="rounded-3xl border border-border/70 bg-card/85 shadow-sm overflow-hidden backdrop-blur-md">
+      {/* Cover Image */}
+      {post.coverImage && (
+        <div className="relative aspect-[21/9] w-full overflow-hidden bg-muted">
+          <Image
+            src={post.coverImage}
+            alt={post.title}
+            fill
+            priority
+            sizes="(max-width: 896px) 100vw, 896px"
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-card/80 via-transparent to-transparent opacity-50" />
+        </div>
+      )}
 
-function PostContent({ post, isAuthor, engagement, userState, comments }: PostContentProps) {
+      <div className="p-6 md:p-10 space-y-8">
+        {/* Topic & Read Time Pills */}
+        <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-muted-foreground">
+          <span className="rounded-full border border-border/80 bg-background/80 px-3 py-1 text-foreground">
+            {post.category}
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-muted/40 px-3 py-1">
+            <Clock className="h-3 w-3" />
+            {readTime}
+          </span>
+          {!post.published ? (
+            <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-amber-600 dark:text-amber-400">
+              Draft Mode
+            </span>
+          ) : null}
 
-    return (
-        <Card className="overflow-hidden border-border/70 bg-card/80">
-            {post.coverImage ? (
-                <div className="relative h-56 w-full overflow-hidden md:h-80">
-                    <Image src={post.coverImage} alt={post.title} fill sizes="100vw" className="h-full w-full object-cover" />
-                </div>
-            ) : null}
-            <CardHeader className="space-y-4">
-                <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-muted-foreground">
-                    <span className="rounded-full border px-2.5 py-1">{post.category}</span>
-                    <span className="rounded-full border px-2.5 py-1">{estimateReadTime(post.content)}</span>
-                    {!post.published ? <span className="rounded-full border px-2.5 py-1">Draft</span> : null}
-                    {(post.postTags ?? []).map((item) => (
-                        <Link key={item.tag.id} href={`/tag/${item.tag.slug}`} className="rounded-full border px-2.5 py-1 hover:bg-muted">
-                            #{item.tag.name}
-                        </Link>
-                    ))}
-                </div>
-                <CardTitle className="text-3xl leading-tight md:text-4xl">
-                    {post.title}
-                </CardTitle>
-                <CardDescription className="flex flex-wrap items-center gap-3 text-sm">
-                    <span className="inline-flex items-center gap-1.5">
-                        <UserRound className="h-4 w-4" />
-                        {post.author.name}
-                    </span>
-                    <span className="inline-flex items-center gap-1.5">
-                        <CalendarDays className="h-4 w-4" />
-                        {formatDate(post.createdAt)}
-                    </span>
-                </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-                <p className="text-lg text-muted-foreground">{post.description}</p>
-                <article className="prose prose-zinc max-w-none whitespace-pre-wrap text-base leading-8 dark:prose-invert">
-                    {post.content}
-                </article>
+          {(post.postTags ?? []).map((item) => (
+            <Link
+              key={item.tag.id}
+              href={`/tag/${item.tag.slug}`}
+              className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-muted/30 px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground"
+            >
+              <Tag className="h-2.5 w-2.5" />
+              <span>{item.tag.name}</span>
+            </Link>
+          ))}
+        </div>
 
-                <PostInteractions
-                    postId={post.id}
-                    authorId={post.authorId}
-                    authorName={post.author.name}
-                    slug={post.slug}
-                    engagement={engagement}
-                    userState={userState}
-                />
+        {/* Title */}
+        <h1 className="text-3xl font-black tracking-tight text-foreground md:text-5xl leading-[1.12]">
+          {post.title}
+        </h1>
 
-                <PostComments
-                    postId={post.id}
-                    comments={comments}
-                    isAuthor={isAuthor}
-                />
-            </CardContent>
-            {
-                isAuthor && (
-                    <CardFooter>
-                        
-                        <div className="flex gap-2 mr-3">
-                            <Button asChild variant={"outline"} size={"sm"}>
-                                <Link href={`/post/edit/${slugify(post.title)}`}>
-                                    <Pencil className="h-4 w-4 mr-0.5"/>Edit
-                                </Link>
-                            </Button>
+        {/* Author Bio Header Strip */}
+        <div className="flex flex-wrap items-center justify-between gap-4 border-y border-border/60 py-4 text-xs text-muted-foreground">
+          <div className="flex items-center gap-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary font-bold">
+              <UserRound className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="font-bold text-sm text-foreground">{post.author.name}</p>
+              <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                <CalendarDays className="h-3 w-3" />
+                <span>Published on {formatDate(post.createdAt)}</span>
+              </p>
+            </div>
+          </div>
 
-                        </div>
-                        <DeletePostButton postId={post.id}/>
-                    </CardFooter>
-                )
-            }
-        </Card>
-    )
+          {isAuthor && (
+            <div className="flex items-center gap-2">
+              <Button asChild variant="outline" size="sm" className="h-8 rounded-lg text-xs font-semibold">
+                <Link href={`/post/edit/${slugify(post.title)}`}>
+                  <Pencil className="h-3.5 w-3.5 mr-1" />
+                  Edit Post
+                </Link>
+              </Button>
+              <DeletePostButton postId={post.id} />
+            </div>
+          )}
+        </div>
+
+        {/* Lede Description */}
+        {post.description && (
+          <p className="text-lg md:text-xl font-normal leading-relaxed text-muted-foreground border-l-2 border-primary/50 pl-4">
+            {post.description}
+          </p>
+        )}
+
+        {/* Article Body Content */}
+        <div className="prose prose-zinc max-w-none text-foreground/95 text-base md:text-lg leading-relaxed dark:prose-invert whitespace-pre-wrap font-sans">
+          {post.content}
+        </div>
+
+        {/* Interactions Row (Clap/Likes, Comments, Bookmarks, Share) */}
+        <div className="border-t border-border/60 pt-6">
+          <PostInteractions
+            postId={post.id}
+            authorId={post.authorId}
+            authorName={post.author.name}
+            slug={post.slug}
+            engagement={engagement}
+            userState={userState}
+          />
+        </div>
+
+        {/* Comments Section */}
+        <div className="border-t border-border/60 pt-8">
+          <h2 className="text-2xl font-bold tracking-tight text-foreground mb-6">
+            Reader Discussion
+          </h2>
+          <PostComments
+            postId={post.id}
+            comments={comments}
+            isAuthor={isAuthor}
+          />
+        </div>
+      </div>
+    </article>
+  );
 }
-
-export default PostContent

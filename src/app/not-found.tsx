@@ -1,23 +1,34 @@
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { Compass, Search } from "lucide-react";
 
-
-
-function NotFoundPage() {
- 
+export default function NotFoundPage() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4 ">
-        <h1 className="text-6xl font-extrabold mb-4">404</h1>
-        <h2 className="text-2xl font-semibold mb-6">Page Not Found!! :( </h2>
-        <p className="text-muted-foreground mb-8 max-w-md">
-          The page you are looking doesn&apos;t exist or has been moved
-        </p>
-        <Button asChild>
-            <Link href={"/"}>Return to Home Page</Link>
-        </Button>
-      
-    </div>
-  )
-}
+    <main className="flex min-h-[60vh] flex-col items-center justify-center px-4 py-16 text-center">
+      <span className="rounded-full border border-border/80 bg-muted/40 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        Error 404
+      </span>
+      <h1 className="mt-4 text-4xl font-black tracking-tight text-foreground sm:text-5xl">
+        Page Not Found
+      </h1>
+      <p className="mt-2 max-w-md text-sm text-muted-foreground">
+        The article, topic, or profile you requested may have been moved or is no longer published.
+      </p>
 
-export default NotFoundPage
+      <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+        <Button asChild className="rounded-xl font-semibold shadow-xs">
+          <Link href="/">
+            <Compass className="h-4 w-4 mr-1.5" />
+            Explore Stories
+          </Link>
+        </Button>
+        <Button asChild variant="outline" className="rounded-xl font-semibold">
+          <Link href="/search">
+            <Search className="h-4 w-4 mr-1.5" />
+            Search Archive
+          </Link>
+        </Button>
+      </div>
+    </main>
+  );
+}
