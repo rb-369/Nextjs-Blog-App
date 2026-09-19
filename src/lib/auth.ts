@@ -12,17 +12,35 @@ function resolveBaseUrl() {
         return process.env.NEXT_PUBLIC_BASE_URL;
     }
 
+    if (process.env.NEXT_PUBLIC_APP_URL) {
+        return process.env.NEXT_PUBLIC_APP_URL;
+    }
+
+    if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+        return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+    }
+
     if (process.env.VERCEL_URL) {
         return `https://${process.env.VERCEL_URL}`;
     }
 
-    return "http://localhost:3000";
+    return "https://velo-blogs.vercel.app";
 }
 
 export const auth = betterAuth({
     appName: "VELO",
     secret: process.env.BETTER_AUTH_SECRET || "BETTER_AUTH_SECRET",
     baseURL: resolveBaseUrl(),
+    trustedOrigins: [
+        "https://velo-blogs.vercel.app",
+        "https://velo-blogs.vercel.app/",
+        "http://localhost:3000",
+        ...(process.env.BASE_URL ? [process.env.BASE_URL] : []),
+        ...(process.env.NEXT_PUBLIC_BASE_URL ? [process.env.NEXT_PUBLIC_BASE_URL] : []),
+        ...(process.env.NEXT_PUBLIC_APP_URL ? [process.env.NEXT_PUBLIC_APP_URL] : []),
+        ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : []),
+        ...(process.env.VERCEL_PROJECT_PRODUCTION_URL ? [`https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`] : []),
+    ],
     database: drizzleAdapter(db, {
         provider:"pg",
         schema: {

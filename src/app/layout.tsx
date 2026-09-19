@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://nextjs-blog-app-akju.vercel.app";
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://velo-blogs.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
