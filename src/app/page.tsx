@@ -35,16 +35,37 @@ export const metadata: Metadata = {
 };
 
 export default async function Home() {
+  let session = null;
+  try {
+    session = await auth.api.getSession({ headers: await headers() });
+  } catch (err) {
+    console.error("Failed to load session in Home:", err);
+  }
 
-  const session = await auth.api.getSession({ headers: await headers() });
-  const posts = await getAllPosts(session?.user?.id);
-  const [suggestedPosts, notificationPosts, smartRecommendations] = session?.user?.id
-    ? await Promise.all([
-        getSuggestedPostsFromSubscribedAuthors(session.user.id),
-        getSubscribedAuthorNotifications(session.user.id),
-        getSmartRecommendations(session.user.id),
-      ])
-    : [[], [], await getSmartRecommendations(undefined)];
+  let posts: any[] = [];
+  try {
+    posts = await getAllPosts(session?.user?.id);
+  } catch (err) {
+    console.error("Failed to load posts in Home:", err);
+  }
+
+  let suggestedPosts: any[] = [];
+  let notificationPosts: any[] = [];
+  let smartRecommendations: any[] = [];
+
+  try {
+    if (session?.user?.id) {
+      [suggestedPosts, notificationPosts, smartRecommendations] = await Promise.all([
+        getSuggestedPostsFromSubscribedAuthors(session.user.id).catch(() => []),
+        getSubscribedAuthorNotifications(session.user.id).catch(() => []),
+        getSmartRecommendations(session.user.id).catch(() => []),
+      ]);
+    } else {
+      smartRecommendations = await getSmartRecommendations(undefined).catch(() => []);
+    }
+  } catch (err) {
+    console.error("Failed to load recommendations in Home:", err);
+  }
   
   return (
     <main className="relative py-10 md:py-14">
@@ -93,7 +114,7 @@ export default async function Home() {
               {notificationPosts.slice(0, 5).map((post) => (
                 <li key={post.id} className="rounded-md border p-3">
                   <Link href={`/post/${post.slug}`} className="font-semibold hover:underline">{post.title}</Link>
-                  <p className="text-xs text-muted-foreground">by {post.author.name}</p>
+                  <p className="text-xs text-muted-foreground">by {post.author?.name || "Unknown Author"}</p>
                 </li>
               ))}
             </ul>
@@ -109,7 +130,7 @@ export default async function Home() {
               {suggestedPosts.map((post) => (
                 <Link key={post.id} href={`/post/${post.slug}`} className="rounded-md border p-3 transition hover:bg-muted/30">
                   <p className="font-semibold">{post.title}</p>
-                  <p className="text-xs text-muted-foreground">{post.author.name}</p>
+                  <p className="text-xs text-muted-foreground">{post.author?.name || "Unknown Author"}</p>
                 </Link>
               ))}
             </div>
@@ -125,7 +146,7 @@ export default async function Home() {
               {smartRecommendations.map((post) => (
                 <Link key={post.id} href={`/post/${post.slug}`} className="rounded-md border p-3 transition hover:bg-muted/30">
                   <p className="font-semibold">{post.title}</p>
-                  <p className="text-xs text-muted-foreground">{post.author.name}</p>
+                  <p className="text-xs text-muted-foreground">{post.author?.name || "Unknown Author"}</p>
                 </Link>
               ))}
             </div>

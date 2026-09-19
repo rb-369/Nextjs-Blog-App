@@ -15,13 +15,16 @@ export function slugify(text: string): string {
 
 }
 
-export function formatDate(date: Date): string {
-  
+export function formatDate(date: Date | string | number | null | undefined): string {
+  if (!date) return "";
+  const d = typeof date === "string" || typeof date === "number" ? new Date(date) : date;
+  if (!(d instanceof Date) || isNaN(d.getTime())) return "";
+
   return new Intl.DateTimeFormat("en-US", {
     month: "long",
     day: "numeric",
     year: "numeric"
-  }).format(date)
+  }).format(d);
 }
 
 export function estimateReadTime(content: string): string {

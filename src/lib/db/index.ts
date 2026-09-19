@@ -13,14 +13,36 @@ const dbEnvCandidates: DbEnvCandidate[] = [
     { name: "POSTGRES_URL", value: process.env.POSTGRES_URL },
     { name: "POSTGRES_PRISMA_URL", value: process.env.POSTGRES_PRISMA_URL },
     { name: "POSTGRES_URL_NON_POOLING", value: process.env.POSTGRES_URL_NON_POOLING },
+    { name: "TGT_DB_URL", value: process.env.TGT_DB_URL },
+    { name: "SUPABASE_DATABASE_URL", value: process.env.SUPABASE_DATABASE_URL },
+    { name: "SUPABASE_URL", value: process.env.SUPABASE_URL },
 ];
 
-const selectedDbEnv = dbEnvCandidates.find((item) => typeof item.value === "string" && item.value.trim().length > 0);
+const validCandidates = dbEnvCandidates.filter(
+    (item): item is { name: string; value: string } => typeof item.value === "string" && item.value.trim().length > 0
+);
+
+let selectedDbEnv: { name: string; value: string } | undefined;
+
+if (process.env.NODE_ENV === "production") {
+    // In production, prioritize remote database connections over accidental localhost values
+    selectedDbEnv = validCandidates.find((item) => {
+        try {
+            const host = new URL(item.value.trim()).hostname.toLowerCase();
+            return host !== "localhost" && host !== "127.0.0.1";
+        } catch {
+            return false;
+        }
+    }) ?? validCandidates[0];
+} else {
+    selectedDbEnv = validCandidates[0];
+}
+
 const connectionString = selectedDbEnv?.value?.trim();
 
 if (!connectionString) {
     throw new Error(
-        "Database connection string is missing. Set DB_URL (or DATABASE_URL/POSTGRES_URL/POSTGRES_PRISMA_URL/POSTGRES_URL_NON_POOLING) in environment variables."
+        "Database connection string is missing. Set DB_URL (or DATABASE_URL/POSTGRES_URL/TGT_DB_URL) in environment variables."
     );
 }
 

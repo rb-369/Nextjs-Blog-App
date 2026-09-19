@@ -69,8 +69,11 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: "/velo_logo_without_bg.png",
-    shortcut: "/velo_logo_without_bg.png",
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/velo_logo_without_bg.png" },
+    ],
+    shortcut: "/favicon.ico",
     apple: "/velo_logo_without_bg.png",
   },
 };

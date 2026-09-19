@@ -36,7 +36,7 @@ function PostCard({post}: PostCardProps) {
       </ViewTrackedLink>
       <CardDescription className="flex items-center gap-1.5 text-xs md:text-sm">
         <CalendarDays className="h-3.5 w-3.5" />
-        By {post.author.name} · {formatDate(post.createdAt)}
+        By {post.author?.name || "Unknown Author"} · {formatDate(post.createdAt)}
       </CardDescription>
 
       {(post.postTags ?? []).length ? (

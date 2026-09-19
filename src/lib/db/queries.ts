@@ -369,7 +369,7 @@ export async function getPostCommentsWithReplies(postId: number) {
         ...comment,
         replies: visible
             .filter((reply) => reply.parentId === comment.id)
-            .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime()),
+            .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()),
     }));
 }
 
@@ -669,59 +669,65 @@ export async function getFollowedAuthorsFeed(userId: string) {
 }
 
 export async function getSmartRecommendations(userId?: string, limit = 6) {
-    await publishDueScheduledPosts();
+    try {
+        await publishDueScheduledPosts();
 
-    const allPosts = await db.query.posts.findMany({
-        where: eq(posts.published, true),
-        orderBy: [desc(posts.createdAt)],
-        with: {
-            author: true,
-            postTags: {
-                with: {
-                    tag: true,
+        const allPosts = await db.query.posts.findMany({
+            where: eq(posts.published, true),
+            orderBy: [desc(posts.createdAt)],
+            with: {
+                author: true,
+                postTags: {
+                    with: {
+                        tag: true,
+                    },
                 },
             },
-        },
-    });
+        });
 
-    if (!userId) {
-        return allPosts.slice(0, limit);
-    }
-
-    const [viewed, bookmarked, reacted] = await Promise.all([
-        db.query.postViews.findMany({ where: eq(postViews.userId, userId) }),
-        db.query.bookmarks.findMany({ where: eq(bookmarks.userId, userId) }),
-        db.query.postReactions.findMany({ where: eq(postReactions.userId, userId) }),
-    ]);
-
-    const interactedPostIds = new Set<number>([
-        ...viewed.map((item) => item.postId),
-        ...bookmarked.map((item) => item.postId),
-        ...reacted.map((item) => item.postId),
-    ]);
-
-    const interactedTagSlugs = new Set<string>();
-    allPosts.forEach((post) => {
-        if (interactedPostIds.has(post.id)) {
-            (post.postTags ?? []).forEach((tagMapping) => interactedTagSlugs.add(tagMapping.tag.slug));
+        if (!userId) {
+            return allPosts.slice(0, limit);
         }
-    });
 
-    const scored = allPosts
-        .filter((post) => !interactedPostIds.has(post.id) && post.authorId !== userId)
-        .map((post) => {
-            const tagMatches = (post.postTags ?? []).filter((tagMapping) => interactedTagSlugs.has(tagMapping.tag.slug)).length;
-            const freshness = Math.max(0, 100 - Math.floor((Date.now() - post.createdAt.getTime()) / (1000 * 60 * 60 * 24)));
-            return {
-                post,
-                score: tagMatches * 10 + freshness,
-            };
-        })
-        .sort((a, b) => b.score - a.score)
-        .slice(0, limit)
-        .map((item) => item.post);
+        const [viewed, bookmarked, reacted] = await Promise.all([
+            db.query.postViews.findMany({ where: eq(postViews.userId, userId) }),
+            db.query.bookmarks.findMany({ where: eq(bookmarks.userId, userId) }),
+            db.query.postReactions.findMany({ where: eq(postReactions.userId, userId) }),
+        ]);
 
-    return scored.length ? scored : allPosts.slice(0, limit);
+        const interactedPostIds = new Set<number>([
+            ...viewed.map((item) => item.postId),
+            ...bookmarked.map((item) => item.postId),
+            ...reacted.map((item) => item.postId),
+        ]);
+
+        const interactedTagSlugs = new Set<string>();
+        allPosts.forEach((post) => {
+            if (interactedPostIds.has(post.id)) {
+                (post.postTags ?? []).forEach((tagMapping) => interactedTagSlugs.add(tagMapping.tag.slug));
+            }
+        });
+
+        const scored = allPosts
+            .filter((post) => !interactedPostIds.has(post.id) && post.authorId !== userId)
+            .map((post) => {
+                const tagMatches = (post.postTags ?? []).filter((tagMapping) => interactedTagSlugs.has(tagMapping.tag.slug)).length;
+                const postTime = post.createdAt ? new Date(post.createdAt).getTime() : Date.now();
+                const freshness = Math.max(0, 100 - Math.floor((Date.now() - postTime) / (1000 * 60 * 60 * 24)));
+                return {
+                    post,
+                    score: tagMatches * 10 + freshness,
+                };
+            })
+            .sort((a, b) => b.score - a.score)
+            .slice(0, limit)
+            .map((item) => item.post);
+
+        return scored.length ? scored : allPosts.slice(0, limit);
+    } catch (e) {
+        console.error("getSmartRecommendations error:", e);
+        return [];
+    }
 }
 
 interface AdvancedSearchFilters {
@@ -769,9 +775,9 @@ export async function searchPostsAdvanced(filters: AdvancedSearchFilters, userId
     });
 
     if (filters.sort === "trending") {
-        filtered.sort((a, b) => b.views - a.views || b.createdAt.getTime() - a.createdAt.getTime());
+        filtered.sort((a, b) => b.views - a.views || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     } else {
-        filtered.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+        filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }
 
     return filtered;
