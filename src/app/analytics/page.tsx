@@ -131,7 +131,7 @@ async function AnalyticsPage({
               <BarChart3 className="h-3.5 w-3.5 text-primary" />
               <span>Studio Analytics</span>
             </div>
-            <h1 className="mt-2 text-3xl font-black tracking-tight text-foreground md:text-4xl">
+            <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground md:text-4xl">
               Performance & Reach
             </h1>
             <p className="mt-1 max-w-xl text-sm text-muted-foreground">
@@ -209,7 +209,7 @@ async function AnalyticsPage({
               </span>
               <card.icon className="h-4 w-4 text-muted-foreground" />
             </div>
-            <p className="mt-3 text-3xl font-black tracking-tight text-foreground">
+            <p className="mt-3 text-3xl font-bold tracking-tight text-foreground">
               {card.value}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">{card.helper}</p>

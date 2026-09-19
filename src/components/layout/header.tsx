@@ -66,7 +66,7 @@ export default function Header() {
                 priority
               />
             </div>
-            <span className="text-xl font-black tracking-tighter text-foreground">
+            <span className="text-xl font-extrabold tracking-tight text-foreground">
               VELO
             </span>
           </Link>

@@ -112,7 +112,7 @@ export default async function Home() {
               <span>Independent Engineering Publication</span>
             </div>
 
-            <h1 className="text-4xl font-black tracking-tighter sm:text-5xl lg:text-6xl leading-[1.08] text-foreground">
+            <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl leading-[1.1] text-foreground text-balance">
               Where builders document what actually works.
             </h1>
 
@@ -163,21 +163,21 @@ export default async function Home() {
 
         {/* 2. COMMUNITY PROOF STRIP (Under Hero) */}
         <div className="mt-14 grid grid-cols-2 gap-4 rounded-2xl border border-border/60 bg-card/40 p-4 md:grid-cols-4 md:p-6 backdrop-blur-xs">
-          <div className="space-y-1">
-            <p className="text-2xl font-black tracking-tight text-foreground">{posts.length}+</p>
-            <p className="text-xs text-muted-foreground">Original stories published</p>
+          <div>
+            <p className="text-2xl font-bold tracking-tight text-foreground">{posts.length}+</p>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground mt-0.5">Dispatches</p>
           </div>
-          <div className="space-y-1">
-            <p className="text-2xl font-black tracking-tight text-foreground">100%</p>
-            <p className="text-xs text-muted-foreground">Markdown native reading</p>
+          <div>
+            <p className="text-2xl font-bold tracking-tight text-foreground">100%</p>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground mt-0.5">Open Access</p>
           </div>
-          <div className="space-y-1">
-            <p className="text-2xl font-black tracking-tight text-foreground">Studio</p>
-            <p className="text-xs text-muted-foreground">Author analytics built-in</p>
+          <div>
+            <p className="text-2xl font-bold tracking-tight text-foreground">Studio</p>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground mt-0.5">Analytics</p>
           </div>
-          <div className="space-y-1">
-            <p className="text-2xl font-black tracking-tight text-foreground">Zero Ads</p>
-            <p className="text-xs text-muted-foreground">Distraction-free typography</p>
+          <div>
+            <p className="text-2xl font-bold tracking-tight text-foreground">Zero Ads</p>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground mt-0.5">No Paywalls</p>
           </div>
         </div>
       </section>
@@ -218,7 +218,7 @@ export default async function Home() {
                 </div>
 
                 <Link href={`/post/${featuredPost.slug}`}>
-                  <h3 className="text-2xl font-black tracking-tight text-foreground group-hover:text-primary transition">
+                  <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground group-hover:text-primary transition text-balance">
                     {featuredPost.title}
                   </h3>
                 </Link>
@@ -339,7 +339,7 @@ export default async function Home() {
       <section id="feed" className="mx-auto max-w-7xl px-4 py-12 md:py-16">
         <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
-            <h2 className="text-3xl font-black tracking-tight text-foreground">Latest Publications</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">Latest Publications</h2>
             <p className="mt-1 text-sm text-muted-foreground">Fresh dispatches, tutorials, and field journals</p>
           </div>
           <div className="flex items-center gap-2">
@@ -366,7 +366,7 @@ export default async function Home() {
       <section className="border-t border-border/70 bg-card/30 py-16 md:py-20">
         <div className="mx-auto max-w-7xl px-4">
           <div className="max-w-2xl">
-            <h2 className="text-3xl font-black tracking-tight text-foreground">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground text-balance">
               Designed for the craft of engineering writing.
             </h2>
             <p className="mt-2 text-sm text-muted-foreground md:text-base">
@@ -413,7 +413,7 @@ export default async function Home() {
         <div className="relative overflow-hidden rounded-3xl border border-border/80 bg-gradient-to-r from-zinc-900 via-zinc-900 to-zinc-950 p-8 md:p-12 text-zinc-100 shadow-xl">
           <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/20 blur-3xl" />
           <div className="max-w-xl space-y-4">
-            <h2 className="text-3xl font-black tracking-tight sm:text-4xl text-white">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight sm:text-4xl text-white text-balance">
               Ready to publish your project story?
             </h2>
             <p className="text-sm md:text-base text-zinc-300">

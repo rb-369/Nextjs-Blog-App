@@ -63,7 +63,7 @@ export default function PostContent({
         </div>
 
         {/* Title */}
-        <h1 className="text-3xl font-black tracking-tight text-foreground md:text-5xl leading-[1.12]">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl md:text-5xl leading-[1.2] text-balance">
           {post.title}
         </h1>
 

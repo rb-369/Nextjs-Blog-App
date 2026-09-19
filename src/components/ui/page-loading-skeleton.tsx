@@ -15,7 +15,7 @@ export function PageLoadingSkeleton({
     <main className="mx-auto max-w-7xl px-4 py-10 md:py-14 space-y-8">
       <section className="rounded-3xl border border-border/70 bg-card/60 p-6 md:p-8 backdrop-blur-md">
         <SkeletonLine className="mb-4 h-4 w-32" />
-        <h1 className="text-3xl font-black tracking-tight text-foreground md:text-4xl">{title}</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground md:text-4xl">{title}</h1>
         <p className="mt-2 text-sm text-muted-foreground">{subtitle}</p>
         <div className="mt-5 flex gap-3">
           <SkeletonLine className="h-10 w-28" />

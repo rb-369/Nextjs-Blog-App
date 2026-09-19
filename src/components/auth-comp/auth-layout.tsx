@@ -47,11 +47,11 @@ function AuthLayout() {
               height={36}
               className="h-9 w-auto"
             />
-            <span className="text-2xl font-black tracking-tight text-foreground">
+            <span className="text-2xl font-extrabold tracking-tight text-foreground">
               VELO
             </span>
           </Link>
-          <h1 className="text-2xl font-black tracking-tight text-foreground">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
             {activeTab === "login" ? "Welcome back" : "Create your account"}
           </h1>
           <p className="text-xs text-muted-foreground">

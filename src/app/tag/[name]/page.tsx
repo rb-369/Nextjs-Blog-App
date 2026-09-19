@@ -46,7 +46,7 @@ async function TagPage({ params }: { params: Promise<{ name: string }> }) {
               <Tag className="h-3.5 w-3.5 text-primary" />
               <span>Topic Archive</span>
             </div>
-            <h1 className="text-3xl font-black tracking-tight text-foreground md:text-4xl">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground md:text-4xl">
               #{tag.name}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">

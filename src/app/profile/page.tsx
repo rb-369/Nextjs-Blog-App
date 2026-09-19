@@ -48,7 +48,7 @@ async function ProfilePage() {
             </Avatar>
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-black tracking-tight text-foreground sm:text-3xl">
+                <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
                   {session.user.name}
                 </h1>
                 <span className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
@@ -78,21 +78,21 @@ async function ProfilePage() {
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Authored Articles
             </span>
-            <p className="text-2xl font-black text-foreground">{postNum}</p>
+            <p className="text-2xl font-bold text-foreground">{postNum}</p>
           </div>
 
           <div className="rounded-2xl border border-border/60 bg-background/60 p-4 space-y-1">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Studio Access
             </span>
-            <p className="text-2xl font-black text-foreground">Active</p>
+            <p className="text-2xl font-bold text-foreground">Active</p>
           </div>
 
           <div className="rounded-2xl border border-border/60 bg-background/60 p-4 space-y-1">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Account Security
             </span>
-            <p className="text-2xl font-black text-foreground">Protected</p>
+            <p className="text-2xl font-bold text-foreground">Protected</p>
           </div>
         </div>
       </section>

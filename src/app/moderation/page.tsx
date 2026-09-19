@@ -34,7 +34,7 @@ async function ModerationPage() {
           <ShieldCheck className="h-3.5 w-3.5 text-primary" />
           <span>Trust & Safety Hub</span>
         </div>
-        <h1 className="text-3xl font-black tracking-tight text-foreground md:text-4xl">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground md:text-4xl">
           Content Moderation
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
