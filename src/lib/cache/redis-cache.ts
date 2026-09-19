@@ -5,8 +5,8 @@ const TAG_KEY_PREFIX = "velo:cache-tag";
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/;
 
 const hasRedisConfig =
-    Boolean(process.env.UPSTASH_REDIS_REST_URL) &&
-    Boolean(process.env.UPSTASH_REDIS_REST_TOKEN);
+    Boolean(process.env.UPSTASH_REDIS_REST_URL?.trim()) &&
+    Boolean(process.env.UPSTASH_REDIS_REST_TOKEN?.trim());
 
 const redis = hasRedisConfig ? Redis.fromEnv() : null;
 
@@ -53,29 +53,40 @@ export async function getOrSetRedisCache<T>(params: {
     }
 
     const cacheKey = makeCacheKey(keyParts);
-    const cached = await redis.get<string>(cacheKey);
 
-    if (typeof cached === "string") {
-        try {
-            return deserialize<T>(cached);
-        } catch {
-            await redis.del(cacheKey);
+    try {
+        const cached = await redis.get<string>(cacheKey);
+
+        if (typeof cached === "string") {
+            try {
+                return deserialize<T>(cached);
+            } catch {
+                await redis.del(cacheKey).catch(() => {});
+            }
         }
+    } catch (error) {
+        console.warn("[redis-cache] Read failure, falling back to direct database query:", error);
     }
 
     const fresh = await getData();
-    const serialized = JSON.stringify(fresh);
 
-    const pipeline = redis.pipeline();
-    pipeline.set(cacheKey, serialized, { ex: ttlSeconds });
+    try {
+        const serialized = JSON.stringify(fresh);
 
-    for (const tag of tags) {
-        const tagKey = makeTagKey(tag);
-        pipeline.sadd(tagKey, cacheKey);
-        pipeline.expire(tagKey, Math.max(ttlSeconds * 2, 60));
+        const pipeline = redis.pipeline();
+        pipeline.set(cacheKey, serialized, { ex: ttlSeconds });
+
+        for (const tag of tags) {
+            const tagKey = makeTagKey(tag);
+            pipeline.sadd(tagKey, cacheKey);
+            pipeline.expire(tagKey, Math.max(ttlSeconds * 2, 60));
+        }
+
+        await pipeline.exec();
+    } catch (error) {
+        console.warn("[redis-cache] Write failure:", error);
     }
 
-    await pipeline.exec();
     return fresh;
 }
 
@@ -84,25 +95,29 @@ export async function invalidateCacheTags(tags: string[]) {
         return;
     }
 
-    const uniqueTags = Array.from(new Set(tags));
-    const keysToDelete = new Set<string>();
+    try {
+        const uniqueTags = Array.from(new Set(tags));
+        const keysToDelete = new Set<string>();
 
-    for (const tag of uniqueTags) {
-        const tagKey = makeTagKey(tag);
-        const members = (await redis.smembers<string[]>(tagKey)) ?? [];
+        for (const tag of uniqueTags) {
+            const tagKey = makeTagKey(tag);
+            const members = (await redis.smembers<string[]>(tagKey)) ?? [];
 
-        for (const key of members) {
-            keysToDelete.add(key);
+            for (const key of members) {
+                keysToDelete.add(key);
+            }
+
+            keysToDelete.add(tagKey);
         }
 
-        keysToDelete.add(tagKey);
-    }
+        if (!keysToDelete.size) {
+            return;
+        }
 
-    if (!keysToDelete.size) {
-        return;
+        await redis.del(...Array.from(keysToDelete));
+    } catch (error) {
+        console.warn("[redis-cache] Invalidation failure:", error);
     }
-
-    await redis.del(...Array.from(keysToDelete));
 }
 
 export const isRedisCacheEnabled = hasRedisConfig;
