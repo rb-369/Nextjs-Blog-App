@@ -44,6 +44,8 @@ DB_URL=postgresql://<user>:<password>@<host>:<port>/<database>
 BETTER_AUTH_SECRET=<strong-random-secret>
 BASE_URL=http://localhost:3000
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
+GOOGLE_CLIENT_ID=<google-client-id>
+GOOGLE_CLIENT_SECRET=<google-client-secret>
 CLOUDINARY_CLOUD_NAME=<cloud-name>
 CLOUDINARY_URL=cloudinary://<api-key>:<api-secret>@<cloud-name>
 UPSTASH_REDIS_REST_URL=<upstash-redis-rest-url>
@@ -53,9 +55,10 @@ UPSTASH_REDIS_REST_TOKEN=<upstash-redis-rest-token>
 Notes:
 
 - Use a strong `BETTER_AUTH_SECRET` (at least 32 chars).
+- **Google OAuth**: Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`. Add authorized redirect URI: `https://velo-blogs.vercel.app/api/auth/callback/google` (and `http://localhost:3000/api/auth/callback/google`).
 - In production (Vercel), set `BASE_URL` and `NEXT_PUBLIC_BASE_URL` to your deployed domain, e.g. `https://velo-blogs.vercel.app`.
 - In production, set one DB connection variable: `DB_URL` (preferred), or `DATABASE_URL`, or `POSTGRES_URL`. If none is set, the app now throws a clear startup error.
-- Cloudinary is configured for remote image rendering in `next.config.ts`.
+- Cloudinary, Unsplash, and Google avatars are configured for remote image rendering in `next.config.ts`.
 
 ## Setup
 
@@ -67,6 +70,13 @@ Run migrations:
 
 ```bash
 npx drizzle-kit migrate
+```
+
+Seed dummy posts and authors:
+
+```bash
+npm run seed
+# or navigate to http://localhost:3000/api/seed in your browser
 ```
 
 Start dev server:
