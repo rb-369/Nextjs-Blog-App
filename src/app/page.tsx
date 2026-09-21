@@ -4,9 +4,7 @@ import NeonLightBeams from "@/components/ui/neon-light-beams";
 import { auth } from "@/lib/auth";
 import {
   getAllPosts,
-  getSmartRecommendations,
   getSubscribedAuthorNotifications,
-  getSuggestedPostsFromSubscribedAuthors,
 } from "@/lib/db/queries";
 import { Metadata } from "next";
 import { headers } from "next/headers";
@@ -70,29 +68,21 @@ export default async function Home() {
     console.error("Failed to load session in Home:", err);
   }
 
-  let posts: any[] = [];
+  let posts: Awaited<ReturnType<typeof getAllPosts>> = [];
   try {
     posts = await getAllPosts(session?.user?.id);
   } catch (err) {
     console.error("Failed to load posts in Home:", err);
   }
 
-  let suggestedPosts: any[] = [];
-  let notificationPosts: any[] = [];
-  let smartRecommendations: any[] = [];
+  let notificationPosts: Awaited<ReturnType<typeof getSubscribedAuthorNotifications>> = [];
 
   try {
     if (session?.user?.id) {
-      [suggestedPosts, notificationPosts, smartRecommendations] = await Promise.all([
-        getSuggestedPostsFromSubscribedAuthors(session.user.id).catch(() => []),
-        getSubscribedAuthorNotifications(session.user.id).catch(() => []),
-        getSmartRecommendations(session.user.id).catch(() => []),
-      ]);
-    } else {
-      smartRecommendations = await getSmartRecommendations(undefined).catch(() => []);
+      notificationPosts = await getSubscribedAuthorNotifications(session.user.id).catch(() => []);
     }
   } catch (err) {
-    console.error("Failed to load recommendations in Home:", err);
+    console.error("Failed to load notifications in Home:", err);
   }
 
   const featuredPost = posts[0] || null;
