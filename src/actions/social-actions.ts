@@ -116,7 +116,11 @@ export async function syncPostTags(postId: number, rawTagInput: string) {
     }
 }
 
-export async function togglePostReaction(postId: number, reactionType: "like" | "dislike") {
+export async function togglePostReaction(
+    postId: number,
+    reactionType: "like" | "dislike",
+    desiredState?: "like" | "dislike" | null
+) {
     try {
         const session = await requireSession();
 
@@ -126,34 +130,62 @@ export async function togglePostReaction(postId: number, reactionType: "like" | 
             .where(and(eq(postReactions.postId, postId), eq(postReactions.userId, session.user.id)))
             .limit(1);
 
-        if (!existing) {
-            await db.insert(postReactions).values({
-                postId,
-                userId: session.user.id,
-                type: reactionType,
-            });
-        } else if (existing.type === reactionType) {
-            await db.delete(postReactions).where(eq(postReactions.id, existing.id));
+        let finalReaction: "like" | "dislike" | null = null;
+
+        if (desiredState !== undefined) {
+            finalReaction = desiredState;
+            if (desiredState === null) {
+                if (existing) {
+                    await db.delete(postReactions).where(eq(postReactions.id, existing.id));
+                }
+            } else if (!existing) {
+                await db.insert(postReactions).values({
+                    postId,
+                    userId: session.user.id,
+                    type: desiredState,
+                });
+            } else if (existing.type !== desiredState) {
+                await db
+                    .update(postReactions)
+                    .set({
+                        type: desiredState,
+                        updatedAt: new Date(),
+                    })
+                    .where(eq(postReactions.id, existing.id));
+            }
         } else {
-            await db
-                .update(postReactions)
-                .set({
+            if (!existing) {
+                await db.insert(postReactions).values({
+                    postId,
+                    userId: session.user.id,
                     type: reactionType,
-                    updatedAt: new Date(),
-                })
-                .where(eq(postReactions.id, existing.id));
+                });
+                finalReaction = reactionType;
+            } else if (existing.type === reactionType) {
+                await db.delete(postReactions).where(eq(postReactions.id, existing.id));
+                finalReaction = null;
+            } else {
+                await db
+                    .update(postReactions)
+                    .set({
+                        type: reactionType,
+                        updatedAt: new Date(),
+                    })
+                    .where(eq(postReactions.id, existing.id));
+                finalReaction = reactionType;
+            }
         }
 
         await revalidatePostTagsById(postId, session.user.id);
         revalidatePath("/");
         revalidatePath("/analytics");
-        return { success: true };
+        return { success: true, reactionType: finalReaction };
     } catch (error) {
         return { success: false, message: error instanceof Error ? error.message : "Failed to update reaction" };
     }
 }
 
-export async function toggleBookmark(postId: number) {
+export async function toggleBookmark(postId: number, desiredState?: boolean) {
     try {
         const session = await requireSession();
 
@@ -163,24 +195,39 @@ export async function toggleBookmark(postId: number) {
             .where(and(eq(bookmarks.postId, postId), eq(bookmarks.userId, session.user.id)))
             .limit(1);
 
-        if (existing) {
-            await db.delete(bookmarks).where(eq(bookmarks.id, existing.id));
+        let isBookmarked = false;
+        if (desiredState !== undefined) {
+            isBookmarked = desiredState;
+            if (!desiredState && existing) {
+                await db.delete(bookmarks).where(eq(bookmarks.id, existing.id));
+            } else if (desiredState && !existing) {
+                await db.insert(bookmarks).values({
+                    postId,
+                    userId: session.user.id,
+                });
+            }
         } else {
-            await db.insert(bookmarks).values({
-                postId,
-                userId: session.user.id,
-            });
+            if (existing) {
+                await db.delete(bookmarks).where(eq(bookmarks.id, existing.id));
+                isBookmarked = false;
+            } else {
+                await db.insert(bookmarks).values({
+                    postId,
+                    userId: session.user.id,
+                });
+                isBookmarked = true;
+            }
         }
 
         await revalidatePostTagsById(postId, session.user.id);
         revalidatePath("/analytics");
-        return { success: true };
+        return { success: true, isBookmarked };
     } catch (error) {
         return { success: false, message: error instanceof Error ? error.message : "Failed to update bookmark" };
     }
 }
 
-export async function toggleAuthorSubscription(authorId: string) {
+export async function toggleAuthorSubscription(authorId: string, desiredState?: boolean) {
     try {
         const session = await requireSession();
 
@@ -194,21 +241,37 @@ export async function toggleAuthorSubscription(authorId: string) {
             .where(and(eq(authorSubscriptions.authorId, authorId), eq(authorSubscriptions.userId, session.user.id)))
             .limit(1);
 
-        if (existing) {
-            await db.delete(authorSubscriptions).where(eq(authorSubscriptions.id, existing.id));
+        let isSubscribed = false;
+        if (desiredState !== undefined) {
+            isSubscribed = desiredState;
+            if (!desiredState && existing) {
+                await db.delete(authorSubscriptions).where(eq(authorSubscriptions.id, existing.id));
+            } else if (desiredState && !existing) {
+                await db.insert(authorSubscriptions).values({
+                    authorId,
+                    userId: session.user.id,
+                    notifyOnPost: true,
+                });
+            }
         } else {
-            await db.insert(authorSubscriptions).values({
-                authorId,
-                userId: session.user.id,
-                notifyOnPost: true,
-            });
+            if (existing) {
+                await db.delete(authorSubscriptions).where(eq(authorSubscriptions.id, existing.id));
+                isSubscribed = false;
+            } else {
+                await db.insert(authorSubscriptions).values({
+                    authorId,
+                    userId: session.user.id,
+                    notifyOnPost: true,
+                });
+                isSubscribed = true;
+            }
         }
 
         await invalidateCacheTags([`feed:${session.user.id}`, "posts"]);
         revalidateTag(`feed:${session.user.id}`, "max");
         revalidateTag("posts", "max");
         revalidatePath("/analytics");
-        return { success: true };
+        return { success: true, isSubscribed };
     } catch (error) {
         return { success: false, message: error instanceof Error ? error.message : "Failed to update subscription" };
     }
