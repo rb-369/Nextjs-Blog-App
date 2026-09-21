@@ -20,7 +20,6 @@ interface Track {
   p1: Point;
   p2: Point;
   p3: Point;
-  width: number;
   color: string;
   glowColor: string;
 }
@@ -59,8 +58,8 @@ function getCubicBezierPoint(p0: Point, p1: Point, p2: Point, p3: Point, t: numb
 export default function NeonLightBeams({
   className = "",
   colors = ["#10b981", "#00f5a0", "#059669", "#34d399", "#38bdf8"],
-  streakCount = 28,
-  speed = 1,
+  streakCount = 34,
+  speed = 1.1,
   interactive = true,
 }: NeonLightBeamsProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -81,42 +80,47 @@ export default function NeonLightBeams({
     if (!ctx) return;
 
     let animationFrameId: number;
-    let width = (canvas.width = container.clientWidth);
-    let height = (canvas.height = container.clientHeight);
-    let dpr = Math.min(typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1, 2);
+    let width = 0;
+    let height = 0;
+    let dpr = 1;
 
     let isVisible = true;
     let tracks: Track[] = [];
     let streaks: Streak[] = [];
 
     const initTracks = () => {
+      if (width === 0 || height === 0) return;
       tracks = [];
-      const numTracks = 14;
+      const numTracks = 18;
       const palette = colors;
 
       for (let i = 0; i < numTracks; i++) {
-        const factor = i / (numTracks - 1);
         const color = palette[i % palette.length];
 
-        // S-curve sweeping from top left/center downward toward bottom right, matching the reference footage
-        const startX = width * (0.05 + factor * 0.45);
-        const startY = -40;
+        // Sweeping S-curves directly echoing the footage:
+        // Left bundle curving through center, and center bundle sweeping toward right
+        const isLeftGroup = i < numTracks / 2;
+        const subFactor = isLeftGroup ? i / (numTracks / 2 - 1) : (i - numTracks / 2) / (numTracks / 2 - 1);
 
-        const cp1X = width * (0.15 + factor * 0.7);
-        const cp1Y = height * 0.35;
+        let p0: Point, p1: Point, p2: Point, p3: Point;
 
-        const cp2X = width * (0.35 + factor * 0.55);
-        const cp2Y = height * 0.65;
-
-        const endX = width * (0.55 + factor * 0.5);
-        const endY = height + 40;
+        if (isLeftGroup) {
+          p0 = { x: width * (-0.05 + subFactor * 0.45), y: -30 };
+          p1 = { x: width * (0.1 + subFactor * 0.55), y: height * 0.3 };
+          p2 = { x: width * (0.2 + subFactor * 0.5), y: height * 0.65 };
+          p3 = { x: width * (0.4 + subFactor * 0.65), y: height + 50 };
+        } else {
+          p0 = { x: width * (0.3 + subFactor * 0.6), y: -30 };
+          p1 = { x: width * (0.45 + subFactor * 0.45), y: height * 0.35 };
+          p2 = { x: width * (0.55 + subFactor * 0.4), y: height * 0.7 };
+          p3 = { x: width * (0.65 + subFactor * 0.45), y: height + 50 };
+        }
 
         tracks.push({
-          p0: { x: startX, y: startY },
-          p1: { x: cp1X, y: cp1Y },
-          p2: { x: cp2X, y: cp2Y },
-          p3: { x: endX, y: endY },
-          width: 1 + Math.random() * 1.5,
+          p0,
+          p1,
+          p2,
+          p3,
           color,
           glowColor: color,
         });
@@ -124,6 +128,7 @@ export default function NeonLightBeams({
     };
 
     const initStreaks = () => {
+      if (tracks.length === 0) return;
       streaks = [];
       for (let i = 0; i < streakCount; i++) {
         const trackIndex = Math.floor(Math.random() * tracks.length);
@@ -131,9 +136,9 @@ export default function NeonLightBeams({
         streaks.push({
           trackIndex,
           progress: Math.random(),
-          speed: (0.003 + Math.random() * 0.006) * speed,
-          length: 0.12 + Math.random() * 0.22,
-          lineWidth: 1.5 + Math.random() * 2.5,
+          speed: (0.0035 + Math.random() * 0.007) * speed,
+          length: 0.15 + Math.random() * 0.28,
+          lineWidth: 2.0 + Math.random() * 3.0,
           color: track ? track.color : colors[0],
           glowColor: track ? track.glowColor : colors[0],
         });
@@ -142,16 +147,21 @@ export default function NeonLightBeams({
 
     const resize = () => {
       if (!container || !canvas) return;
-      width = container.clientWidth;
-      height = container.clientHeight;
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const rect = container.getBoundingClientRect();
+      width = rect.width || container.clientWidth;
+      height = rect.height || container.clientHeight;
+      if (width === 0 || height === 0) return;
 
-      canvas.width = width * dpr;
-      canvas.height = height * dpr;
+      dpr = Math.min(typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1, 2);
+
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
 
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.scale(dpr, dpr);
+
       initTracks();
       initStreaks();
     };
@@ -160,7 +170,6 @@ export default function NeonLightBeams({
     const resizeObserver = new ResizeObserver(() => resize());
     resizeObserver.observe(container);
 
-    // Visibility observer to save battery when user scrolls away
     const intersectionObserver = new IntersectionObserver(
       ([entry]) => {
         isVisible = entry.isIntersecting;
@@ -169,7 +178,6 @@ export default function NeonLightBeams({
     );
     intersectionObserver.observe(container);
 
-    // Mouse move handling
     const handleMouseMove = (e: MouseEvent) => {
       if (!interactive || !container) return;
       const rect = container.getBoundingClientRect();
@@ -187,41 +195,42 @@ export default function NeonLightBeams({
 
     const render = (time: number) => {
       animationFrameId = requestAnimationFrame(render);
-      if (!isVisible) return;
+      if (!isVisible || width === 0 || height === 0 || tracks.length === 0) return;
 
       const delta = Math.min((time - lastTime) / 16.67, 2);
       lastTime = time;
 
-      // Smooth mouse interpolation
       mouseRef.current.x += (mouseRef.current.targetX - mouseRef.current.x) * 0.05;
       mouseRef.current.y += (mouseRef.current.targetY - mouseRef.current.y) * 0.05;
 
-      const mouseInfluenceX = (mouseRef.current.x - 0.5) * 60;
-      const mouseInfluenceY = (mouseRef.current.y - 0.5) * 40;
+      const mouseInfluenceX = (mouseRef.current.x - 0.5) * 50;
+      const mouseInfluenceY = (mouseRef.current.y - 0.5) * 30;
 
       ctx.clearRect(0, 0, width, height);
 
-      // Subtle dynamic wave motion over time
       const timeSec = time * 0.001;
 
-      // Draw faint baseline guide tracks for depth
+      // Draw faint baseline glowing guide curves for deep spatial geometry
       ctx.save();
       tracks.forEach((track, i) => {
-        const wave = Math.sin(timeSec + i * 0.7) * 15;
-        const p1: Point = { x: track.p1.x + mouseInfluenceX * 0.6 + wave, y: track.p1.y + mouseInfluenceY * 0.4 };
-        const p2: Point = { x: track.p2.x + mouseInfluenceX * 0.9 - wave, y: track.p2.y + mouseInfluenceY * 0.6 };
+        const wave = Math.sin(timeSec * 0.8 + i * 0.6) * 12;
+        const p1: Point = { x: track.p1.x + mouseInfluenceX * 0.5 + wave, y: track.p1.y + mouseInfluenceY * 0.3 };
+        const p2: Point = { x: track.p2.x + mouseInfluenceX * 0.8 - wave, y: track.p2.y + mouseInfluenceY * 0.5 };
 
         ctx.beginPath();
         ctx.moveTo(track.p0.x, track.p0.y);
         ctx.bezierCurveTo(p1.x, p1.y, p2.x, p2.y, track.p3.x, track.p3.y);
         ctx.strokeStyle = track.color;
-        ctx.globalAlpha = 0.07;
-        ctx.lineWidth = 1;
+        ctx.globalAlpha = 0.12;
+        ctx.lineWidth = 1.2;
         ctx.stroke();
       });
       ctx.restore();
 
-      // Render glowing streaks
+      // Enable additive "screen" blending for vivid neon luminosity
+      ctx.save();
+      ctx.globalCompositeOperation = "screen";
+
       streaks.forEach((streak) => {
         streak.progress += streak.speed * delta;
         if (streak.progress > 1 + streak.length) {
@@ -233,17 +242,16 @@ export default function NeonLightBeams({
         if (!track) return;
 
         const i = streak.trackIndex;
-        const wave = Math.sin(timeSec + i * 0.7) * 15;
-        const p1: Point = { x: track.p1.x + mouseInfluenceX * 0.6 + wave, y: track.p1.y + mouseInfluenceY * 0.4 };
-        const p2: Point = { x: track.p2.x + mouseInfluenceX * 0.9 - wave, y: track.p2.y + mouseInfluenceY * 0.6 };
+        const wave = Math.sin(timeSec * 0.8 + i * 0.6) * 12;
+        const p1: Point = { x: track.p1.x + mouseInfluenceX * 0.5 + wave, y: track.p1.y + mouseInfluenceY * 0.3 };
+        const p2: Point = { x: track.p2.x + mouseInfluenceX * 0.8 - wave, y: track.p2.y + mouseInfluenceY * 0.5 };
 
         const headT = Math.min(1, Math.max(0, streak.progress));
         const tailT = Math.min(1, Math.max(0, streak.progress - streak.length));
 
         if (headT <= 0 || tailT >= 1 || headT <= tailT) return;
 
-        // Sample points along the curve segment
-        const steps = 16;
+        const steps = 18;
         const points: Point[] = [];
         for (let s = 0; s <= steps; s++) {
           const t = tailT + (headT - tailT) * (s / steps);
@@ -255,19 +263,19 @@ export default function NeonLightBeams({
         const headPoint = points[points.length - 1];
         const tailPoint = points[0];
 
-        // 1. Broad Neon Outer Glow
+        // 1. Broad Neon Atmospheric Aura
         ctx.save();
         ctx.shadowColor = streak.glowColor;
-        ctx.shadowBlur = 18;
-        ctx.lineWidth = streak.lineWidth * 2.2;
+        ctx.shadowBlur = 24;
+        ctx.lineWidth = streak.lineWidth * 2.8;
 
         const glowGrad = ctx.createLinearGradient(tailPoint.x, tailPoint.y, headPoint.x, headPoint.y);
         glowGrad.addColorStop(0, "rgba(0,0,0,0)");
-        glowGrad.addColorStop(0.7, streak.glowColor);
+        glowGrad.addColorStop(0.6, streak.glowColor);
         glowGrad.addColorStop(1, "#ffffff");
 
         ctx.strokeStyle = glowGrad;
-        ctx.globalAlpha = 0.55;
+        ctx.globalAlpha = 0.85;
         ctx.beginPath();
         ctx.moveTo(points[0].x, points[0].y);
         for (let j = 1; j < points.length; j++) {
@@ -276,20 +284,20 @@ export default function NeonLightBeams({
         ctx.stroke();
         ctx.restore();
 
-        // 2. Focused Sharp Laser Core (Crisp inner glow + White Hot Head)
+        // 2. Focused Sharp Laser Core (White-hot energy stream)
         ctx.save();
         ctx.shadowColor = streak.glowColor;
-        ctx.shadowBlur = 8;
+        ctx.shadowBlur = 10;
         ctx.lineWidth = streak.lineWidth;
 
         const coreGrad = ctx.createLinearGradient(tailPoint.x, tailPoint.y, headPoint.x, headPoint.y);
         coreGrad.addColorStop(0, "rgba(0,0,0,0)");
-        coreGrad.addColorStop(0.6, streak.color);
-        coreGrad.addColorStop(0.9, "#ffffff");
+        coreGrad.addColorStop(0.5, streak.color);
+        coreGrad.addColorStop(0.85, "#ffffff");
         coreGrad.addColorStop(1, "#ffffff");
 
         ctx.strokeStyle = coreGrad;
-        ctx.globalAlpha = 0.95;
+        ctx.globalAlpha = 1.0;
         ctx.beginPath();
         ctx.moveTo(points[0].x, points[0].y);
         for (let j = 1; j < points.length; j++) {
@@ -297,15 +305,17 @@ export default function NeonLightBeams({
         }
         ctx.stroke();
 
-        // 3. Bright Head Photon Spark
+        // 3. Head Spark
         ctx.fillStyle = "#ffffff";
         ctx.shadowColor = streak.glowColor;
-        ctx.shadowBlur = 14;
+        ctx.shadowBlur = 16;
         ctx.beginPath();
-        ctx.arc(headPoint.x, headPoint.y, streak.lineWidth * 1.2, 0, Math.PI * 2);
+        ctx.arc(headPoint.x, headPoint.y, streak.lineWidth * 1.3, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
       });
+
+      ctx.restore();
     };
 
     animationFrameId = requestAnimationFrame(render);
@@ -327,9 +337,8 @@ export default function NeonLightBeams({
       aria-hidden="true"
     >
       <canvas ref={canvasRef} className="absolute inset-0 block w-full h-full" />
-      {/* Soft Vignette Overlay so that page content, headlines, and cards remain 100% sharp and readable */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-transparent to-background" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,var(--background)_95%)] opacity-80" />
+      {/* Gentle bottom fade so it transitions cleanly into the spotlight section */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background via-background/50 to-transparent" />
     </div>
   );
 }

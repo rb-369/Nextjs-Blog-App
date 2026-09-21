@@ -90,23 +90,23 @@ export default async function Home() {
   const remainingPosts = posts.slice(3);
 
   return (
-    <main className="relative overflow-hidden">
+    <main className="relative isolate overflow-hidden">
       {/* Background Neon Light Beams (Video Inspired) */}
-      <div className="pointer-events-none absolute -top-10 left-0 right-0 h-[680px] -z-10 overflow-hidden">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[780px] z-0 overflow-hidden">
         <NeonLightBeams
           className="h-full w-full"
           colors={["#10b981", "#00f5a0", "#059669", "#34d399", "#38bdf8"]}
-          streakCount={24}
-          speed={1.1}
+          streakCount={36}
+          speed={1.2}
           interactive={true}
         />
       </div>
 
       {/* Background Ambient Gradient */}
-      <div className="pointer-events-none absolute -top-40 left-1/2 -z-20 h-[600px] w-[1000px] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(59,130,246,0.12),rgba(14,165,233,0.05),transparent_70%)] blur-3xl" />
+      <div className="pointer-events-none absolute -top-40 left-1/2 z-0 h-[600px] w-[1000px] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(16,185,129,0.15),rgba(56,189,248,0.08),transparent_70%)] blur-3xl" />
 
       {/* 1. HERO SECTION (Fits initial viewport, max 2 line headline, max 20 word subtext) */}
-      <section className="mx-auto max-w-7xl px-4 pt-10 pb-16 md:pt-16 md:pb-20">
+      <section className="relative z-10 mx-auto max-w-7xl px-4 pt-10 pb-16 md:pt-16 md:pb-20">
         <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-12 lg:gap-12">
           {/* Hero Left Content */}
           <div className="space-y-6 lg:col-span-7">
