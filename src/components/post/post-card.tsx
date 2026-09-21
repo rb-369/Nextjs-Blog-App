@@ -1,16 +1,50 @@
+"use client";
+
 import { PostCardProps } from "@/lib/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import Link from "next/link";
-import ViewTrackedLink from "./view-tracked-link";
 import { estimateReadTime, formatDate } from "@/lib/utils";
 import { ArrowUpRight, CalendarDays, Clock, UserRound } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export default function PostCard({ post }: PostCardProps) {
+  const router = useRouter();
   const readTime = estimateReadTime(post.content);
 
+  const handleOpenPost = (e?: React.MouseEvent) => {
+    // If double-clicking on an inner tag link, prevent opening post
+    if (e) {
+      const target = e.target as HTMLElement;
+      if (target.closest("[data-no-post-nav]")) {
+        return;
+      }
+    }
+
+    try {
+      const storageKey = "velo_view_session_key";
+      let sessionKey = window.sessionStorage.getItem(storageKey);
+      if (!sessionKey) {
+        sessionKey = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+        window.sessionStorage.setItem(storageKey, sessionKey);
+      }
+      fetch("/api/post-view", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postId: post.id, sessionKey }),
+        keepalive: true,
+      }).catch(() => {});
+    } catch {}
+
+    router.push(`/post/${post.slug}`);
+  };
+
   return (
-    <Card className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border/70 bg-card/75 transition-all duration-300 hover:-translate-y-1 hover:border-foreground/25 hover:shadow-xl">
+    <Card
+      onDoubleClick={handleOpenPost}
+      title="Double-click to open post"
+      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border/70 bg-card/75 transition-all duration-300 hover:-translate-y-1 hover:border-foreground/25 hover:shadow-xl cursor-pointer select-none"
+    >
       {/* Cover Image or Elegant Pattern Fallback */}
       <div className="relative h-48 w-full overflow-hidden bg-muted/40">
         {post.coverImage ? (
@@ -48,11 +82,11 @@ export default function PostCard({ post }: PostCardProps) {
           </span>
         </div>
 
-        <ViewTrackedLink postId={post.id} className="inline-block" href={`/post/${post.slug}`}>
+        <div className="inline-block">
           <CardTitle className="text-xl font-bold leading-snug tracking-tight text-foreground transition group-hover:text-primary">
             {post.title}
           </CardTitle>
-        </ViewTrackedLink>
+        </div>
 
         <CardDescription className="flex items-center gap-3 text-xs text-muted-foreground">
           <span className="inline-flex items-center gap-1">
@@ -67,7 +101,12 @@ export default function PostCard({ post }: PostCardProps) {
         </CardDescription>
 
         {(post.postTags ?? []).length ? (
-          <div className="flex flex-wrap gap-1.5 pt-1">
+          <div
+            data-no-post-nav
+            className="flex flex-wrap gap-1.5 pt-1"
+            onClick={(e) => e.stopPropagation()}
+            onDoubleClick={(e) => e.stopPropagation()}
+          >
             {post.postTags?.slice(0, 3).map((item) => (
               <Link
                 key={item.tag.id}
@@ -87,14 +126,13 @@ export default function PostCard({ post }: PostCardProps) {
         </p>
 
         <div className="mt-4 flex items-center justify-between border-t border-border/50 pt-3">
-          <ViewTrackedLink
-            postId={post.id}
-            href={`/post/${post.slug}`}
-            className="inline-flex items-center gap-1 text-xs font-semibold text-primary transition group-hover:underline"
-          >
-            Read story
+          <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary transition group-hover:underline">
+            Double-click to read
             <ArrowUpRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-          </ViewTrackedLink>
+          </span>
+          <span className="text-[10px] text-muted-foreground font-mono bg-muted/60 px-1.5 py-0.5 rounded border border-border/40">
+            Double-click to open
+          </span>
         </div>
       </CardContent>
     </Card>

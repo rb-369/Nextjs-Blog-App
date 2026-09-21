@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { auth } from "@/lib/auth";
-import ViewTrackedLink from "@/components/post/view-tracked-link";
+import DoubleClickPostWrapper from "@/components/post/double-click-post-wrapper";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ArrowUpRight, Clock, Filter, SearchIcon, Sparkles, UserRound } from "lucide-react";
@@ -186,41 +186,42 @@ async function SearchPage({
           </div>
         ) : (
           filteredPosts.map((post) => (
-            <ViewTrackedLink
+            <DoubleClickPostWrapper
               key={post.id}
               postId={post.id}
-              href={`/post/${post.slug}`}
-              className="group block rounded-2xl border border-border/70 bg-card/75 p-6 transition-all duration-200 hover:border-foreground/25 hover:shadow-md"
+              slug={post.slug}
             >
-              <div className="flex items-center justify-between gap-2">
-                <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <UserRound className="h-3.5 w-3.5" />
-                  {post.author?.name ?? "Anonymous"}
-                </span>
-                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                  <Clock className="h-3 w-3" />
-                  {getReadTime(post.content)}
-                </span>
+              <div className="group block rounded-2xl border border-border/70 bg-card/75 p-6 transition-all duration-200 hover:border-foreground/25 hover:shadow-md cursor-pointer select-none">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <UserRound className="h-3.5 w-3.5" />
+                    {post.author?.name ?? "Anonymous"}
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                    <Clock className="h-3 w-3" />
+                    {getReadTime(post.content)}
+                  </span>
+                </div>
+
+                <h2 className="mt-2 text-xl font-bold tracking-tight text-foreground transition group-hover:text-primary">
+                  {post.title}
+                </h2>
+
+                <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+                  {post.description}
+                </p>
+
+                <div className="mt-4 flex items-center justify-between border-t border-border/50 pt-3">
+                  <span className="text-xs text-muted-foreground font-mono">
+                    {post.category || "General"}
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary transition group-hover:translate-x-0.5">
+                    Double-click to read
+                    <ArrowUpRight className="h-3.5 w-3.5" />
+                  </span>
+                </div>
               </div>
-
-              <h2 className="mt-2 text-xl font-bold tracking-tight text-foreground transition group-hover:text-primary">
-                {post.title}
-              </h2>
-
-              <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
-                {post.description}
-              </p>
-
-              <div className="mt-4 flex items-center justify-between border-t border-border/50 pt-3">
-                <span className="text-xs text-muted-foreground font-mono">
-                  {post.category || "General"}
-                </span>
-                <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary transition group-hover:translate-x-0.5">
-                  Read article
-                  <ArrowUpRight className="h-3.5 w-3.5" />
-                </span>
-              </div>
-            </ViewTrackedLink>
+            </DoubleClickPostWrapper>
           ))
         )}
       </section>

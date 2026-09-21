@@ -1,4 +1,5 @@
 import PostList from "@/components/post/post-list";
+import DoubleClickPostWrapper from "@/components/post/double-click-post-wrapper";
 import { auth } from "@/lib/auth";
 import {
   getAllPosts,
@@ -198,86 +199,98 @@ export default async function Home() {
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
             {/* Primary Featured Card (Span 7) */}
-            <article className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-border/70 bg-card/80 p-6 md:col-span-7 transition-all duration-300 hover:border-foreground/20 hover:shadow-lg">
-              <div className="relative mb-6 aspect-video w-full overflow-hidden rounded-2xl bg-muted">
-                <Image
-                  src={featuredPost.coverImage || "/velo_craft_art.jpg"}
-                  alt={featuredPost.title}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 60vw"
-                  className="object-cover transition duration-500 group-hover:scale-105"
-                />
-              </div>
+            <div className="md:col-span-7">
+              <DoubleClickPostWrapper
+                slug={featuredPost.slug}
+                postId={featuredPost.id}
+                className="h-full"
+              >
+                <article className="group relative flex h-full flex-col justify-between overflow-hidden rounded-3xl border border-border/70 bg-card/80 p-6 transition-all duration-300 hover:border-foreground/20 hover:shadow-lg cursor-pointer select-none">
+                  <div className="relative mb-6 aspect-video w-full overflow-hidden rounded-2xl bg-muted">
+                    <Image
+                      src={featuredPost.coverImage || "/velo_craft_art.jpg"}
+                      alt={featuredPost.title}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 60vw"
+                      className="object-cover transition duration-500 group-hover:scale-105"
+                    />
+                  </div>
 
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className="rounded-full border border-border/80 bg-background/80 px-2.5 py-0.5 text-xs font-semibold text-foreground">
-                    {featuredPost.category}
-                  </span>
-                  <span className="text-xs text-muted-foreground">Editor choice</span>
-                </div>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span className="rounded-full border border-border/80 bg-background/80 px-2.5 py-0.5 text-xs font-semibold text-foreground">
+                        {featuredPost.category}
+                      </span>
+                      <span className="text-xs text-muted-foreground">Editor choice</span>
+                    </div>
 
-                <Link href={`/post/${featuredPost.slug}`}>
-                  <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground group-hover:text-primary transition text-balance">
-                    {featuredPost.title}
-                  </h3>
-                </Link>
+                    <Link href={`/post/${featuredPost.slug}`}>
+                      <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground group-hover:text-primary transition text-balance">
+                        {featuredPost.title}
+                      </h3>
+                    </Link>
 
-                <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
-                  {featuredPost.description}
-                </p>
+                    <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+                      {featuredPost.description}
+                    </p>
 
-                <div className="flex items-center justify-between pt-3 text-xs text-muted-foreground border-t border-border/50">
-                  <span>By {featuredPost.author?.name || "Anonymous"}</span>
-                  <Link
-                    href={`/post/${featuredPost.slug}`}
-                    className="inline-flex items-center gap-1 font-semibold text-primary hover:underline"
-                  >
-                    Read article
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
-                </div>
-              </div>
-            </article>
+                    <div className="flex items-center justify-between pt-3 text-xs text-muted-foreground border-t border-border/50">
+                      <span>By {featuredPost.author?.name || "Anonymous"}</span>
+                      <Link
+                        href={`/post/${featuredPost.slug}`}
+                        className="inline-flex items-center gap-1 font-semibold text-primary hover:underline"
+                      >
+                        Read article
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      </Link>
+                    </div>
+                  </div>
+                </article>
+              </DoubleClickPostWrapper>
+            </div>
 
             {/* Secondary Tiles (Span 5) */}
             <div className="flex flex-col gap-6 md:col-span-5">
               {secondaryPosts.length > 0 ? (
                 secondaryPosts.map((post) => (
-                  <article
+                  <DoubleClickPostWrapper
                     key={post.id}
-                    className="group flex flex-1 flex-col justify-between rounded-3xl border border-border/70 bg-card/80 p-6 transition-all duration-300 hover:border-foreground/20 hover:shadow-lg"
+                    slug={post.slug}
+                    postId={post.id}
+                    className="flex flex-1"
                   >
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="rounded-full border border-border/80 bg-background/80 px-2 py-0.5 font-semibold text-muted-foreground">
-                          {post.category}
-                        </span>
-                        <span className="text-muted-foreground font-mono text-[11px]">Recommended</span>
+                    <article className="group flex w-full flex-1 flex-col justify-between rounded-3xl border border-border/70 bg-card/80 p-6 transition-all duration-300 hover:border-foreground/20 hover:shadow-lg cursor-pointer select-none">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="rounded-full border border-border/80 bg-background/80 px-2 py-0.5 font-semibold text-muted-foreground">
+                            {post.category}
+                          </span>
+                          <span className="text-muted-foreground font-mono text-[11px]">Recommended</span>
+                        </div>
+
+                        <Link href={`/post/${post.slug}`}>
+                          <h4 className="text-lg font-bold leading-snug tracking-tight text-foreground group-hover:text-primary transition">
+                            {post.title}
+                          </h4>
+                        </Link>
+
+                        <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                          {post.description}
+                        </p>
                       </div>
 
-                      <Link href={`/post/${post.slug}`}>
-                        <h4 className="text-lg font-bold leading-snug tracking-tight text-foreground group-hover:text-primary transition">
-                          {post.title}
-                        </h4>
-                      </Link>
-
-                      <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-                        {post.description}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-3 mt-3 text-xs text-muted-foreground border-t border-border/50">
-                      <span>{post.author?.name || "Author"}</span>
-                      <Link
-                        href={`/post/${post.slug}`}
-                        className="inline-flex items-center gap-1 font-semibold text-primary hover:underline"
-                      >
-                        Read
-                        <ArrowUpRight className="h-3.5 w-3.5" />
-                      </Link>
-                    </div>
-                  </article>
+                      <div className="flex items-center justify-between pt-3 mt-3 text-xs text-muted-foreground border-t border-border/50">
+                        <span>{post.author?.name || "Author"}</span>
+                        <Link
+                          href={`/post/${post.slug}`}
+                          className="inline-flex items-center gap-1 font-semibold text-primary hover:underline"
+                        >
+                          Read
+                          <ArrowUpRight className="h-3.5 w-3.5" />
+                        </Link>
+                      </div>
+                    </article>
+                  </DoubleClickPostWrapper>
                 ))
               ) : (
                 <div className="flex flex-1 flex-col justify-center rounded-3xl border border-dashed border-border p-6 text-center">
