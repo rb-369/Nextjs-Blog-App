@@ -7,15 +7,17 @@ export default function Footer() {
       <div className="mx-auto max-w-7xl px-4 py-12 md:py-16">
         <div className="grid grid-cols-1 gap-10 md:grid-cols-5">
           <div className="space-y-4 md:col-span-2">
-            <Link href="/" className="inline-flex items-center gap-2 font-bold text-foreground">
-              <Image
-                src="/velo_logo_without_bg.svg"
-                alt="VELO logo"
-                width={32}
-                height={32}
-                className="h-8 w-auto"
-              />
-              <span className="text-xl tracking-tight">VELO</span>
+            <Link href="/" className="group inline-flex items-center gap-2.5 font-bold text-foreground">
+              <div className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-border/80 bg-card shadow-xs transition-all duration-200 group-hover:scale-105 group-hover:border-foreground/20 dark:border-border/60">
+                <Image
+                  src="/velo_logo_without_bg.svg"
+                  alt="VELO logo"
+                  width={32}
+                  height={32}
+                  className="h-7 w-auto"
+                />
+              </div>
+              <span className="text-xl font-extrabold tracking-tight">VELO</span>
             </Link>
             <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
               A modern publication and knowledge platform for engineers, designers, and builders documenting real implementation work.

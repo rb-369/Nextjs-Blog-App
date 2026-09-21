@@ -55,14 +55,14 @@ export default function Header() {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
         {/* Left: Brand & Main Navigation */}
         <div className="flex items-center gap-6 md:gap-8">
-          <Link href="/" className="group flex items-center gap-2 font-bold tracking-tight">
-            <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-card transition group-hover:scale-105">
+          <Link href="/" className="group flex items-center gap-2.5 font-bold tracking-tight">
+            <div className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-border/80 bg-card shadow-xs transition-all duration-200 group-hover:scale-105 group-hover:border-foreground/20 group-hover:shadow-sm dark:border-border/60">
               <Image
                 src="/velo_logo_without_bg.svg"
                 alt="VELO logo"
                 width={32}
                 height={32}
-                className="h-8 w-auto"
+                className="h-7 w-auto"
                 priority
               />
             </div>

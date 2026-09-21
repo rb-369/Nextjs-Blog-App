@@ -39,14 +39,16 @@ function AuthLayout() {
       <div className="w-full max-w-md space-y-6">
         {/* Brand Header */}
         <div className="text-center space-y-2">
-          <Link href="/" className="inline-flex items-center gap-2 font-bold">
-            <Image
-              src="/velo_logo_without_bg.svg"
-              alt="VELO logo"
-              width={36}
-              height={36}
-              className="h-9 w-auto"
-            />
+          <Link href="/" className="group inline-flex items-center gap-2.5 font-bold">
+            <div className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-border/80 bg-card shadow-xs transition-all duration-200 group-hover:scale-105 group-hover:border-foreground/20 dark:border-border/60">
+              <Image
+                src="/velo_logo_without_bg.svg"
+                alt="VELO logo"
+                width={36}
+                height={36}
+                className="h-8 w-auto"
+              />
+            </div>
             <span className="text-2xl font-extrabold tracking-tight text-foreground">
               VELO
             </span>
